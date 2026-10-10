@@ -1,0 +1,121 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+@layer base {
+  :root,
+  .dark {
+    /* Warm Autumn Elegance - Dark (Default) */
+    --bg-primary: #0D0F12;
+    --bg-sidebar: #13161C;
+    --bg-surface: #1A1E26;
+    --bg-surface-hover: #232934;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(255, 255, 255, 0.16);
+    
+    --text-primary: #F3F4F6;
+    --text-secondary: #9DA5B4;
+    --text-muted: #656C7B;
+    
+    --accent: #E07A3F;
+    --accent-hover: #F08E55;
+    --accent-muted: rgba(224, 122, 63, 0.14);
+    
+    --energy-gradient: linear-gradient(135deg, #F98C4E 0%, #E07A3F 50%, #C85F28 100%);
+    --energy-glow: 0 4px 20px rgba(224, 122, 63, 0.28);
+    
+    --success: #10b981;
+    --error: #ef4444;
+    --warning: #f59e0b;
+
+    /* Message Bubbles */
+    --msg-user-bg: #1E232D;
+    --msg-user-border: rgba(224, 122, 63, 0.25);
+    --msg-assistant-bg: transparent;
+
+    /* Spacing System */
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-5: 24px;
+    --sp-6: 32px;
+    --sp-8: 48px;
+
+    /* Border Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+    
+    /* Shadcn Fallback Mapping */
+    --background: var(--bg-primary);
+    --foreground: var(--text-primary);
+    --card: var(--bg-surface);
+    --card-foreground: var(--text-primary);
+    --popover: var(--bg-surface);
+    --popover-foreground: var(--text-primary);
+    --primary: var(--accent);
+    --primary-foreground: #ffffff;
+    --secondary: var(--bg-surface-hover);
+    --secondary-foreground: var(--text-primary);
+    --muted: var(--bg-surface-hover);
+    --muted-foreground: var(--text-muted);
+    --border: var(--border-subtle);
+    --input: var(--border-subtle);
+    --ring: var(--accent);
+    --radius: var(--radius-md);
+  }
+  .light {
+    /* Warm Autumn Elegance - Light */
+    --bg-primary: #F8F9FA;
+    --bg-sidebar: #F0F2F5;
+    --bg-surface: #FFFFFF;
+    --bg-surface-hover: #E8EBF0;
+    --border-subtle: rgba(0, 0, 0, 0.08);
+    --border-hover: rgba(0, 0, 0, 0.14);
+    
+    --text-primary: #16181D;
+    --text-secondary: #484E5B;
+    --text-muted: #828A99;
+    
+    --accent: #D2652B;
+    --accent-hover: #B8531D;
+    --accent-muted: rgba(210, 101, 43, 0.12);
+
+    --energy-gradient: linear-gradient(135deg, #E6773E 0%, #D2652B 50%, #B8531D 100%);
+    --energy-glow: 0 4px 16px rgba(210, 101, 43, 0.22);
+
+    /* Message Bubbles */
+    --msg-user-bg: #FFFFFF;
+    --msg-user-border: rgba(210, 101, 43, 0.25);
+    --msg-assistant-bg: transparent;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border-subtle);
+  }
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: var(--sp-2); height: var(--sp-2); }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: var(--radius-full); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  
+  /* Typing Cursor Animation */
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .typing-cursor > *:last-child::after {
+    content: ' ▍';
+    animation: blink 1s step-start infinite;
+    color: var(--accent);
+  }
+}
