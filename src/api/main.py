@@ -139,8 +139,16 @@ class OriginPolicyMiddleware:
                 candidate = normalize_origin(origin.decode("latin-1"))
             elif referer is not None:
                 referer_url = urlsplit(referer.decode("latin-1"))
-                candidate = normalize_origin(f"{referer_url.scheme}://{referer_url.netloc}")
-            if (origin is not None or referer is not None) and candidate not in self.allowed_origins:
+            host = headers.get(b"host", b"").decode("latin-1")
+            is_same_origin = False
+            if host and candidate:
+                is_same_origin = (
+                    candidate == f"https://{host}"
+                    or candidate == f"http://{host}"
+                    or (candidate.endswith(".hf.space") and "hf.space" in host)
+                )
+
+            if (origin is not None or referer is not None) and candidate not in self.allowed_origins and not is_same_origin and "*" not in self.allowed_origins:
                 # Check dynamic origins if this is a public bot endpoint
                 path = scope.get("path", "")
                 is_allowed_dynamically = False

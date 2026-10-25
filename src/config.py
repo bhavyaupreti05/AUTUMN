@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # Auth & Environment Settings
     ENVIRONMENT: str = "development"
-    JWT_SECRET: str
+    JWT_SECRET: str = ""
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     PASSWORD_RESET_TTL_MINUTES: int = 30
@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     @classmethod
     def set_environment_defaults(cls, values):
         environment = values.get("ENVIRONMENT", "development")
+        if not values.get("JWT_SECRET") and not os.environ.get("JWT_SECRET"):
+            import secrets
+            values["JWT_SECRET"] = secrets.token_hex(32)
         if "COOKIE_SECURE" not in values:
             values["COOKIE_SECURE"] = environment == "production"
         if "ALLOWED_ORIGINS" not in values and environment != "production":
