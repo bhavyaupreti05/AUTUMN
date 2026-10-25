@@ -185,7 +185,8 @@ function IntegrationPanel({ bot, onClose, notify }: { bot: CustomBot; onClose: (
     await deleteIntegration(bot.id); setIntegration({ configured: false }); setEnabled(false); setSecret(''); notify('External integration detached');
   };
   const copy = async (value: string, message: string) => { await navigator.clipboard.writeText(value); notify(message); };
-  const embedCode = integration?.public_key ? `<script src="http://localhost:8000/widget.js" data-bot-key="${integration.public_key}" data-api-base="http://localhost:8000" defer></script>` : '';
+  const apiOrigin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'http://localhost:8000';
+  const embedCode = integration?.public_key ? `<script src="${apiOrigin}/widget.js" data-bot-key="${integration.public_key}" data-api-base="${apiOrigin}" defer></script>` : '';
 
   return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
     <div role="dialog" aria-modal="true" className="w-full max-w-lg rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
