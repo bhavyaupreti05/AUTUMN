@@ -1,7 +1,7 @@
 ---
 title: Autumn AI Chatbot
 emoji: 🍂
-colorFrom: amber
+colorFrom: yellow
 colorTo: red
 sdk: docker
 app_port: 7860
