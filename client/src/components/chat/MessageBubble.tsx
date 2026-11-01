@@ -79,6 +79,13 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   status?: 'sending' | 'complete' | 'aborted' | 'error' | 'timeout';
+  agent?: {
+    id: string;
+    name: string;
+    title: string;
+    color: string;
+    icon: string;
+  };
 }
 
 interface MessageBubbleProps {
@@ -197,8 +204,10 @@ export function MessageBubble({
         {!isUser && (
           <div className="flex items-center gap-2 mb-1 px-1">
             <span className="text-[0.88rem] font-bold text-white flex items-center gap-1.5">
-              {botName}
-              <span className="text-[0.62rem] text-[#8B2BFF] bg-[#8B2BFF]/15 border border-[#8B2BFF]/30 px-1.5 py-0.2 rounded-sm uppercase tracking-wider font-semibold">AI OS</span>
+              {message.agent?.name || botName}
+              <span className="text-[0.62rem] text-[#8B2BFF] bg-[#8B2BFF]/15 border border-[#8B2BFF]/30 px-1.5 py-0.2 rounded-sm uppercase tracking-wider font-semibold">
+                {message.agent?.title || "Autonomous AI"}
+              </span>
             </span>
             <span className="text-zinc-500 text-[0.68rem]">Just now</span>
           </div>

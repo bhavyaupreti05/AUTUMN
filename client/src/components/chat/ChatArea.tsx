@@ -22,6 +22,13 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   status?: 'sending' | 'complete' | 'aborted' | 'error' | 'timeout';
+  agent?: {
+    id: string;
+    name: string;
+    title: string;
+    color: string;
+    icon: string;
+  };
 }
 
 interface ChatAreaProps {

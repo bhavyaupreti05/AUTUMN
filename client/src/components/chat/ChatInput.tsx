@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { KeyboardEvent, ChangeEvent } from 'react';
 import { Send, Paperclip, Loader2, Mic, Square } from 'lucide-react';
+import clsx from 'clsx';
 
 // SpeechRecognition Types
 declare global {
@@ -11,7 +12,7 @@ declare global {
 }
 
 interface ChatInputProps {
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, agentMode?: string) => void;
   disabled?: boolean;
   onUploadFile?: (file: File) => void;
   isUploading?: boolean;
@@ -31,6 +32,7 @@ export function ChatInput({
   botName = 'Autumn' 
 }: ChatInputProps) {
   const [input, setInput] = useState('');
+  const [selectedAgent, setSelectedAgent] = useState<'auto' | 'dev' | 'researcher' | 'strategist' | 'data'>('auto');
   const [isRecording, setIsRecording] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -105,7 +107,7 @@ export function ChatInput({
 
   const handleSend = () => {
     if (input.trim() && !disabled) {
-      onSendMessage(input.trim());
+      onSendMessage(input.trim(), selectedAgent);
       setInput('');
     }
   };
@@ -128,6 +130,35 @@ export function ChatInput({
   return (
     <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-5 bg-gradient-to-t from-black via-black/85 to-transparent flex flex-col items-center pointer-events-none z-30">
       
+      {/* Level 2 Agent Selector Bar */}
+      <div className="w-full max-w-[880px] mb-2 flex items-center justify-between pointer-events-auto px-1">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+          <span className="text-[0.65rem] text-zinc-500 font-bold uppercase tracking-wider mr-1 hidden sm:inline">Worker Agent:</span>
+          {[
+            { id: 'auto', label: '⚡ Auto-Route', title: 'Autonomous multi-agent router' },
+            { id: 'dev', label: '💻 DevArchitect', title: 'Principal Software Engineer' },
+            { id: 'researcher', label: '📚 DocSynth', title: 'Lead Document & RAG Researcher' },
+            { id: 'strategist', label: '🎯 Strategist', title: 'Career & Execution Coach' },
+            { id: 'data', label: '📊 DataMind', title: 'Quantitative Data Analyst' },
+          ].map((agent) => (
+            <button
+              key={agent.id}
+              type="button"
+              onClick={() => setSelectedAgent(agent.id as any)}
+              title={agent.title}
+              className={clsx(
+                "px-2.5 py-0.5 rounded-full text-[0.68rem] font-medium transition-all cursor-pointer border whitespace-nowrap",
+                selectedAgent === agent.id
+                  ? "bg-[#8B2BFF]/25 border-[#8B2BFF] text-white shadow-[0_0_12px_rgba(139,43,255,0.4)]"
+                  : "bg-[#09090D]/90 border-white/10 text-zinc-400 hover:text-white hover:border-[#8B2BFF]/40"
+              )}
+            >
+              {agent.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* SECTION G: Chat Composer Container */}
       <div className="w-full max-w-[880px] flex items-end gap-2.5 bg-[#09090D] border border-[#8B2BFF]/35 rounded-[24px] py-2.5 px-4 shadow-[0_0_25px_rgba(139,43,255,0.18)] focus-within:border-[#8B2BFF] focus-within:shadow-[0_0_35px_rgba(139,43,255,0.32)] transition-all pointer-events-auto">
         

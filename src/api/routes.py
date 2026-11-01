@@ -52,10 +52,16 @@ class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=12000)
     conversation_id: Optional[str] = None
     truncate_from_message_id: Optional[str] = None
+    agent_mode: Optional[str] = "auto"
 
 class MessageFeedbackRequest(BaseModel):
     rating: str = Field(..., pattern="^(positive|negative)$")
     suggestion: Optional[str] = None
+
+@router.get("/agents")
+def get_agents():
+    from src.agents import list_agent_profiles
+    return {"agents": list_agent_profiles()}
     
 @router.get("/health")
 def health_check():
@@ -246,12 +252,24 @@ def chat_endpoint(request: Request, chat_req: ChatRequest, service: ChatService 
     if chat_req.truncate_from_message_id and conv_id:
         repo.truncate_from_message(conv_id, chat_req.truncate_from_message_id)
 
+    from src.agents import get_agent_profile, detect_best_agent
+    has_docs = len(_doc_repo.get_conversation_documents(conv_id)) > 0
+    if chat_req.agent_mode and chat_req.agent_mode != "auto":
+        agent = get_agent_profile(chat_req.agent_mode)
+    else:
+        agent = detect_best_agent(chat_req.message, has_documents=has_docs)
+
     async def event_generator():
-        # First yield the conversation ID so the client knows it
-        yield f"data: {json.dumps({'conversation_id': conv_id})}\n\n"
+        # First yield the conversation ID and selected agent metadata so client displays the active agent badge
+        yield f"data: {json.dumps({'conversation_id': conv_id, 'agent': agent.to_dict()})}\n\n"
         
         try:
-            stream = service.generate_chat_response(chat_req.message, conv_id, user_id=current_user.get("id"))
+            stream = service.generate_chat_response(
+                chat_req.message, 
+                conv_id, 
+                user_id=current_user.get("id"),
+                system_prompt=agent.system_prompt
+            )
             from fastapi.concurrency import iterate_in_threadpool
             async for item in iterate_in_threadpool(stream):
                 if await request.is_disconnected():

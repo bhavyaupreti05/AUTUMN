@@ -6,6 +6,13 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   status?: 'sending' | 'complete' | 'aborted' | 'error' | 'timeout';
+  agent?: {
+    id: string;
+    name: string;
+    title: string;
+    color: string;
+    icon: string;
+  };
 }
 
 const CHAT_TIMEOUT_MS = 600000; // 10 minutes for slow local LLM inference; avoid aborting valid document-grounded answers
@@ -93,7 +100,7 @@ export function useChat(initialConversationId: string | null | undefined, chatEn
     });
   }, []);
 
-  const sendMessage = useCallback(async (text: string) => {
+  const sendMessage = useCallback(async (text: string, agentMode = 'auto') => {
     if (!text.trim() || isGenerating) return;
 
     const userMsg: Message = { id: createId(), role: 'user', content: text };
@@ -120,7 +127,8 @@ export function useChat(initialConversationId: string | null | undefined, chatEn
         signal: controller.signal,
         body: JSON.stringify({
           message: text,
-          conversation_id: conversationId
+          conversation_id: conversationId,
+          agent_mode: agentMode
         })
       });
 
@@ -172,6 +180,10 @@ export function useChat(initialConversationId: string | null | undefined, chatEn
               if (data.conversation_id) {
                 setCurrentConversationId(data.conversation_id);
                 requestConversationId = data.conversation_id;
+              }
+              if (data.agent) {
+                const temporaryId = activeAssistantIdRef.current;
+                setMessages((prev) => prev.map((message) => message.id === temporaryId ? { ...message, agent: data.agent } : message));
               }
               if (data.chunk) {
                 streamingTextRef.current += data.chunk;
