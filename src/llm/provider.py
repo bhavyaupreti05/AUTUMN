@@ -180,6 +180,7 @@ class GroqProvider(LLMProvider):
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            "User-Agent": "Autumn-App/1.0",
         }
 
         payload = {
