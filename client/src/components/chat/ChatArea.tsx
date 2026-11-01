@@ -29,6 +29,8 @@ interface Message {
     color: string;
     icon: string;
   };
+  thoughts?: string[];
+  isThinking?: boolean;
 }
 
 interface ChatAreaProps {
@@ -38,7 +40,7 @@ interface ChatAreaProps {
   onRetry?: (message: Message) => void;
   onEdit?: (messageId: string, newContent: string) => void;
   documentsCount?: number;
-  onSuggestedPrompt?: (prompt: string) => void;
+  onSuggestedPrompt?: (prompt: string, agentMode?: string) => void;
   username?: string | null;
   starterQuestions?: string[];
   onOpenFileUpload?: () => void;
@@ -123,14 +125,14 @@ export function ChatArea({
       title: 'Ask Anything',
       subtitle: 'Get instant answers.',
       icon: Zap,
-      action: () => onSuggestedPrompt?.("Give me a concise briefing on what you can do for me as my personal AI operating system.")
+      action: () => onSuggestedPrompt?.("Give me a concise briefing on what you can do for me as my personal AI operating system.", "auto")
     },
     {
       id: 'build-code',
       title: 'Build & Code',
       subtitle: 'Generate, debug, deploy.',
       icon: Code2,
-      action: () => onSuggestedPrompt?.("Write a clean, production-ready async Python FastAPI service with error handling and typing.")
+      action: () => onSuggestedPrompt?.("Write a clean, production-ready async Python FastAPI service with error handling and typing.", "dev")
     },
     {
       id: 'analyze-files',
@@ -138,10 +140,12 @@ export function ChatArea({
       subtitle: 'Summarize & explore.',
       icon: Layers,
       action: () => {
-        if (onOpenFileUpload) {
+        if (documentsCount > 0) {
+          onSuggestedPrompt?.("Synthesize the key insights and data from my attached documents with exact source citations.", "researcher");
+        } else if (onOpenFileUpload) {
           onOpenFileUpload();
         } else {
-          onSuggestedPrompt?.("How do I upload and ask questions about my PDFs or documents?");
+          onSuggestedPrompt?.("How do I upload and ask questions about my PDFs or documents?", "researcher");
         }
       }
     },
@@ -150,7 +154,7 @@ export function ChatArea({
       title: 'Create Something',
       subtitle: 'Ideas to execution.',
       icon: Box,
-      action: () => onSuggestedPrompt?.("Pitch 3 innovative full-stack AI project architectures that stand out to tech recruiters.")
+      action: () => onSuggestedPrompt?.("Pitch 3 innovative full-stack AI project architectures that stand out to tech recruiters.", "strategist")
     }
   ];
 
@@ -160,29 +164,29 @@ export function ChatArea({
       label: 'Summarize this PDF',
       action: () => {
         if (documentsCount > 0) {
-          onSuggestedPrompt?.("Summarize the attached documents and highlight the core findings with bullet points.");
+          onSuggestedPrompt?.("Summarize the attached documents and highlight the core findings with bullet points.", "researcher");
         } else if (onOpenFileUpload) {
           onOpenFileUpload();
         } else {
-          onSuggestedPrompt?.("Please summarize the attached PDF document.");
+          onSuggestedPrompt?.("Please summarize the attached PDF document.", "researcher");
         }
       }
     },
     {
       label: 'Plan my study schedule',
-      action: () => onSuggestedPrompt?.("Design a high-yield 14-day study schedule for mastering system design and algorithms.")
+      action: () => onSuggestedPrompt?.("Design a high-yield 14-day study schedule for mastering system design and algorithms.", "strategist")
     },
     {
       label: 'Explain this code',
-      action: () => onSuggestedPrompt?.("Explain this algorithm step-by-step with time/space complexity and a real-world analogy:")
+      action: () => onSuggestedPrompt?.("Explain this algorithm step-by-step with time/space complexity and a real-world analogy:", "dev")
     },
     {
       label: 'Suggest a project idea',
-      action: () => onSuggestedPrompt?.("Suggest an ambitious, high-impact AI engineer project that solves a real business problem.")
+      action: () => onSuggestedPrompt?.("Suggest an ambitious, high-impact AI engineer project that solves a real business problem.", "strategist")
     },
     {
       label: 'Check my resume',
-      action: () => onSuggestedPrompt?.("Review my resume points and provide actionable bullet rewrites using Google's X-Y-Z formula.")
+      action: () => onSuggestedPrompt?.("Review my resume points and provide actionable bullet rewrites using Google's X-Y-Z formula.", "strategist")
     }
   ];
 

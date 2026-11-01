@@ -18,7 +18,7 @@ import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
 import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
 import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
 import { useTheme } from '../../contexts/ThemeContext';
-import { ThumbsDown, ThumbsUp, Volume2, VolumeX, Copy, Check, Send, RotateCw, Play, Loader2 } from 'lucide-react';
+import { ThumbsDown, ThumbsUp, Volume2, VolumeX, Copy, Check, Send, RotateCw, Play, Loader2, Brain, ChevronDown, ChevronUp } from 'lucide-react';
 
 SyntaxHighlighter.registerLanguage('bash', bash);
 SyntaxHighlighter.registerLanguage('cpp', cpp);
@@ -142,6 +142,8 @@ interface Message {
     color: string;
     icon: string;
   };
+  thoughts?: string[];
+  isThinking?: boolean;
 }
 
 interface MessageBubbleProps {
@@ -177,6 +179,7 @@ export function MessageBubble({
   const [showSuggestionInput, setShowSuggestionInput] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [copiedResponse, setCopiedResponse] = useState(false);
+  const [isThoughtsOpen, setIsThoughtsOpen] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   const parsedCharts = useMemo(() => {
@@ -316,7 +319,58 @@ export function MessageBubble({
               </div>
             </div>
           ) : (
-            <div className={clsx("prose max-w-none w-full text-zinc-100", theme === 'dark' && "prose-invert", status === 'sending' && "typing-cursor")}>
+            <div className="w-full">
+              {/* Dynamic Agent Thinking Process Accordion */}
+              {!isUser && message.thoughts && message.thoughts.length > 0 && (
+                <div className="mb-3.5 rounded-xl border border-[#8B2BFF]/30 bg-[#0A0614]/80 backdrop-blur-md overflow-hidden transition-all shadow-[0_0_15px_rgba(139,43,255,0.06)]">
+                  <button
+                    type="button"
+                    onClick={() => setIsThoughtsOpen(!isThoughtsOpen)}
+                    className="flex w-full items-center justify-between px-3.5 py-2 text-left bg-[#120B24]/90 hover:bg-[#180E30] transition-colors cursor-pointer border-none"
+                  >
+                    <div className="flex items-center gap-2 text-[0.76rem] font-semibold text-zinc-300">
+                      <Brain size={14} className="text-[#8B2BFF] shrink-0" />
+                      <span>Thinking Process</span>
+                      <span className="text-[0.66rem] text-[#A75BFF] bg-[#8B2BFF]/15 px-1.5 py-0.5 rounded-full font-mono border border-[#8B2BFF]/30">
+                        {message.thoughts.length} step{message.thoughts.length > 1 ? 's' : ''}
+                      </span>
+                      {status === 'sending' && message.isThinking && (
+                        <span className="inline-flex items-center gap-1.5 text-[0.68rem] text-emerald-400 font-normal ml-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          Reasoning...
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-zinc-500 hover:text-white transition-colors">
+                      {isThoughtsOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </div>
+                  </button>
+
+                  {isThoughtsOpen && (
+                    <div className="px-3.5 py-2.5 space-y-1.5 border-t border-[#8B2BFF]/15 text-[0.74rem] font-mono bg-black/50">
+                      {message.thoughts.map((thought, idx) => (
+                        <div key={idx} className="flex items-start gap-2 leading-relaxed">
+                          <span className="text-[#8B2BFF] font-bold select-none shrink-0">›</span>
+                          <span className={idx === message.thoughts!.length - 1 && status === 'sending' && message.isThinking ? "text-[#C084FC] font-medium animate-pulse" : "text-zinc-400"}>
+                            {thought}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Real-time reasoning placeholder before tokens arrive */}
+              {!isUser && status === 'sending' && !message.content && (!message.thoughts || message.thoughts.length === 0) && (
+                <div className="flex items-center gap-2 text-xs text-zinc-400 py-2">
+                  <Loader2 size={13} className="animate-spin text-[#8B2BFF]" />
+                  <span>Orchestrating agents and analyzing prompt...</span>
+                </div>
+              )}
+
+              <div className={clsx("prose max-w-none w-full text-zinc-100", theme === 'dark' && "prose-invert", status === 'sending' && "typing-cursor")}>
+
               
               {/* Optional Recharts Table Visualizer */}
               {parsedCharts && parsedCharts.map((chart: any, idx: number) => (
@@ -377,6 +431,7 @@ export function MessageBubble({
               >
                 {message.content}
               </ReactMarkdown>
+            </div>
             </div>
           )}
         

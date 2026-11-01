@@ -13,6 +13,8 @@ export interface Message {
     color: string;
     icon: string;
   };
+  thoughts?: string[];
+  isThinking?: boolean;
 }
 
 const CHAT_TIMEOUT_MS = 600000; // 10 minutes for slow local LLM inference; avoid aborting valid document-grounded answers
@@ -100,14 +102,21 @@ export function useChat(initialConversationId: string | null | undefined, chatEn
     });
   }, []);
 
-  const sendMessage = useCallback(async (text: string, agentMode = 'auto') => {
+  const sendMessage = useCallback(async (text: string, agentMode = 'auto', enableWebSearch = false) => {
     if (!text.trim() || isGenerating) return;
 
     const userMsg: Message = { id: createId(), role: 'user', content: text };
     
     const assistantId = createId();
     activeAssistantIdRef.current = assistantId;
-    const assistantMsg: Message = { id: assistantId, role: 'assistant', content: '', status: 'sending' };
+    const assistantMsg: Message = { 
+      id: assistantId, 
+      role: 'assistant', 
+      content: '', 
+      status: 'sending',
+      thoughts: [],
+      isThinking: true 
+    };
     
     setMessages(prev => [...prev, userMsg, assistantMsg]);
     setIsGenerating(true);
@@ -128,7 +137,8 @@ export function useChat(initialConversationId: string | null | undefined, chatEn
         body: JSON.stringify({
           message: text,
           conversation_id: conversationId,
-          agent_mode: agentMode
+          agent_mode: agentMode,
+          enable_web_search: enableWebSearch
         })
       });
 
@@ -185,7 +195,19 @@ export function useChat(initialConversationId: string | null | undefined, chatEn
                 const temporaryId = activeAssistantIdRef.current;
                 setMessages((prev) => prev.map((message) => message.id === temporaryId ? { ...message, agent: data.agent } : message));
               }
+              if (data.thought) {
+                const temporaryId = activeAssistantIdRef.current;
+                setMessages((prev) => prev.map((message) => {
+                  if (message.id === temporaryId) {
+                    const prevThoughts = message.thoughts || [];
+                    return { ...message, thoughts: [...prevThoughts, data.thought], isThinking: true };
+                  }
+                  return message;
+                }));
+              }
               if (data.chunk) {
+                const temporaryId = activeAssistantIdRef.current;
+                setMessages((prev) => prev.map((message) => message.id === temporaryId && message.isThinking ? { ...message, isThinking: false } : message));
                 streamingTextRef.current += data.chunk;
                 scheduleFlush();
               }
@@ -229,7 +251,7 @@ export function useChat(initialConversationId: string | null | undefined, chatEn
       setMessages((prev) => 
         prev.map(msg => 
           msg.id === currentId 
-            ? { ...msg, content: streamingTextRef.current, status: streamStatus }
+            ? { ...msg, content: streamingTextRef.current, status: streamStatus, isThinking: false }
             : msg
         )
       );

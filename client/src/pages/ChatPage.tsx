@@ -28,6 +28,8 @@ export function ChatPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<'auto' | 'dev' | 'researcher' | 'strategist' | 'data'>('auto');
+  const [isWebSearch, setIsWebSearch] = useState(false);
 
   const { messages, isGenerating, sendMessage, stopGeneration, regenerateMessage, currentConversationId } = useChat(selectedConvId, '/api/chat', conversationStorageKey);
   const { documents, uploadDocument, isUploading, uploadError, detachDocument } = useDocuments(currentConversationId);
@@ -351,14 +353,18 @@ export function ChatPage() {
           onRetry={handleRetry}
           onEdit={regenerateMessage}
           documentsCount={documents.length}
-          onSuggestedPrompt={sendMessage}
+          onSuggestedPrompt={(prompt, agentMode) => {
+            const targetAgent = (agentMode as any) || selectedAgent;
+            if (agentMode) setSelectedAgent(agentMode as any);
+            sendMessage(prompt, targetAgent, isWebSearch);
+          }}
           onOpenFileUpload={triggerUploadDialog}
         />
         
         {/* SECTION G: Chat Composer */}
         <div className="bg-black flex flex-col shrink-0 pb-4 relative">
           <ChatInput 
-            onSendMessage={sendMessage} 
+            onSendMessage={(text, agent, webSearch) => sendMessage(text, agent || selectedAgent, webSearch ?? isWebSearch)} 
             disabled={isGenerating} 
             onUploadFile={uploadDocument}
             isUploading={isUploading}
@@ -366,6 +372,10 @@ export function ChatPage() {
             onStop={stopGeneration}
             isNewChat={messages.length === 0}
             botName="Autumn"
+            selectedAgent={selectedAgent}
+            onSelectAgent={setSelectedAgent}
+            isWebSearchEnabled={isWebSearch}
+            onToggleWebSearch={() => setIsWebSearch(!isWebSearch)}
           />
         </div>
       </div>

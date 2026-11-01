@@ -53,6 +53,7 @@ class ChatRequest(BaseModel):
     conversation_id: Optional[str] = None
     truncate_from_message_id: Optional[str] = None
     agent_mode: Optional[str] = "auto"
+    enable_web_search: Optional[bool] = False
 
 class MessageFeedbackRequest(BaseModel):
     rating: str = Field(..., pattern="^(positive|negative)$")
@@ -60,6 +61,10 @@ class MessageFeedbackRequest(BaseModel):
 
 class ExecuteCodeRequest(BaseModel):
     code: str = Field(..., min_length=1, max_length=25000)
+
+class WebSearchRequest(BaseModel):
+    query: str = Field(..., min_length=1, max_length=500)
+    max_results: Optional[int] = Field(5, ge=1, le=10)
 
 @router.get("/agents")
 def get_agents():
@@ -70,6 +75,12 @@ def get_agents():
 def execute_code_endpoint(req: ExecuteCodeRequest, current_user: dict = Depends(get_current_user)):
     from src.agents import execute_python_code
     return execute_python_code(req.code)
+
+@router.post("/tools/web-search")
+def web_search_endpoint(req: WebSearchRequest, current_user: dict = Depends(get_current_user)):
+    from src.agents.orchestrator import orchestrator
+    return orchestrator.execute_tool("web_search", query=req.query, max_results=req.max_results)
+
     
 @router.get("/health")
 def health_check():
@@ -261,22 +272,55 @@ def chat_endpoint(request: Request, chat_req: ChatRequest, service: ChatService 
         repo.truncate_from_message(conv_id, chat_req.truncate_from_message_id)
 
     from src.agents import get_agent_profile, detect_best_agent
+    from src.agents.orchestrator import orchestrator
+    from src.agents.tools.web_search import format_search_results_for_prompt
+    import asyncio
+
     has_docs = len(_doc_repo.get_conversation_documents(conv_id)) > 0
     if chat_req.agent_mode and chat_req.agent_mode != "auto":
         agent = get_agent_profile(chat_req.agent_mode)
     else:
         agent = detect_best_agent(chat_req.message, has_documents=has_docs)
 
+    should_search = bool(chat_req.enable_web_search or orchestrator.should_web_search(chat_req.message))
+
     async def event_generator():
-        # First yield the conversation ID and selected agent metadata so client displays the active agent badge
+        # 1. Yield conversation ID and selected agent metadata for active badge
         yield f"data: {json.dumps({'conversation_id': conv_id, 'agent': agent.to_dict()})}\n\n"
         
+        # 2. Dynamic reasoning / thinking process stream
+        reasoning_steps = orchestrator.generate_reasoning_steps(
+            agent,
+            chat_req.message,
+            has_docs=has_docs,
+            has_web_search=should_search
+        )
+        for step in reasoning_steps:
+            yield f"data: {json.dumps({'thought': step})}\n\n"
+            await asyncio.sleep(0.04)
+
+        system_prompt = agent.system_prompt
+
+        # 3. Live Web Search Tool execution if triggered
+        if should_search:
+            yield f"data: {json.dumps({'thought': f'Executing live DuckDuckGo search for: \"{chat_req.message[:50]}\"...'})}\n\n"
+            search_res = orchestrator.execute_tool("web_search", query=chat_req.message, max_results=5)
+            results = search_res.get("results", [])
+            if results:
+                web_context = format_search_results_for_prompt(results, chat_req.message)
+                system_prompt = f"{agent.system_prompt}\n\n{web_context}"
+                yield f"data: {json.dumps({'thought': f'Retrieved {len(results)} authoritative sources from the live web.'})}\n\n"
+            else:
+                yield f"data: {json.dumps({'thought': 'Web search completed with standard index fallback.'})}\n\n"
+            await asyncio.sleep(0.04)
+
+        # 4. Stream LLM output tokens
         try:
             stream = service.generate_chat_response(
                 chat_req.message, 
                 conv_id, 
                 user_id=current_user.get("id"),
-                system_prompt=agent.system_prompt
+                system_prompt=system_prompt
             )
             from fastapi.concurrency import iterate_in_threadpool
             async for item in iterate_in_threadpool(stream):
