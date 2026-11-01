@@ -104,30 +104,30 @@ export function LoginPage() {
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Ambient background glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] bg-[var(--accent)] opacity-10 blur-[120px] pointer-events-none rounded-full" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] bg-[#8B2BFF] opacity-15 blur-[140px] pointer-events-none rounded-full" />
       
       <div className="w-full max-w-[420px] flex flex-col items-center text-center relative z-10 my-8">
         {/* Logo Badge */}
-        <div className="relative mb-4 group">
-          <div className="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-[var(--accent)] to-[#FFA770] opacity-35 blur-md group-hover:opacity-60 transition-opacity" />
-          <div className="relative w-20 h-20 rounded-2xl bg-[var(--bg-surface)] border border-[color-mix(in_srgb,var(--accent)_35%,transparent)] shadow-xl flex items-center justify-center p-2 overflow-hidden">
-            <img src="/logo.png" alt="Autumn Logo" className="w-full h-full rounded-xl object-cover" />
+        <div className="relative mb-5 group">
+          <div className="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-[#8B2BFF] to-[#601AB8] opacity-50 blur-lg group-hover:opacity-80 transition-opacity" />
+          <div className="relative w-16 h-16 rounded-2xl bg-[#0D0D14] border border-[#8B2BFF]/50 shadow-[0_0_25px_rgba(139,43,255,0.3)] flex items-center justify-center p-2">
+            <div className="w-5 h-5 rounded-full bg-[#8B2BFF] shadow-[0_0_12px_#8B2BFF] animate-pulse" />
           </div>
         </div>
 
-        <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-1.5">
-          Welcome to <span className="bg-gradient-to-r from-[var(--accent)] to-[#FFA770] bg-clip-text text-transparent">Autumn</span>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">
+          Welcome to <span className="text-[#8B2BFF] drop-shadow-[0_0_20px_rgba(139,43,255,0.4)]">Autumn</span>
         </h1>
-        <p className="text-[var(--text-secondary)] text-[0.88rem] mb-6">Private, on-device intelligence</p>
+        <p className="text-zinc-400 text-xs sm:text-sm mb-6">Personal AI Operating System</p>
         
         <div className="flex flex-wrap justify-center gap-2 mb-6">
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] py-1 px-3 rounded-full text-[0.75rem] font-medium text-[var(--text-secondary)] flex items-center gap-1.5 shadow-xs">
-            <Lock size={12} className="text-[var(--accent)]" />
-            <span>Secure Access</span>
+          <div className="bg-[#0D0D14] border border-white/5 py-1 px-3 rounded-full text-[0.72rem] font-medium text-zinc-300 flex items-center gap-1.5 shadow-xs">
+            <Lock size={12} className="text-[#8B2BFF]" />
+            <span>Secure Enterprise Access</span>
           </div>
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] py-1 px-3 rounded-full text-[0.75rem] font-medium text-[var(--text-secondary)] flex items-center gap-1.5 shadow-xs">
-            <Shield size={12} className="text-[var(--accent)]" />
-            <span>100% Local & Private</span>
+          <div className="bg-[#0D0D14] border border-white/5 py-1 px-3 rounded-full text-[0.72rem] font-medium text-zinc-300 flex items-center gap-1.5 shadow-xs">
+            <Shield size={12} className="text-[#8B2BFF]" />
+            <span>Cloud & Local Intelligence</span>
           </div>
         </div>
 

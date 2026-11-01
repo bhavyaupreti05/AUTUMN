@@ -18,7 +18,7 @@ import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
 import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
 import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
 import { useTheme } from '../../contexts/ThemeContext';
-import { ThumbsDown, ThumbsUp, Volume2, VolumeX, Copy, Check, Send } from 'lucide-react';
+import { ThumbsDown, ThumbsUp, Volume2, VolumeX, Copy, Check, Send, RotateCw } from 'lucide-react';
 
 SyntaxHighlighter.registerLanguage('bash', bash);
 SyntaxHighlighter.registerLanguage('cpp', cpp);
@@ -37,8 +37,6 @@ SyntaxHighlighter.alias('python', ['py']);
 SyntaxHighlighter.alias('bash', ['sh', 'shell']);
 SyntaxHighlighter.alias('markup', ['html', 'xml']);
 
-SyntaxHighlighter.alias('markup', ['html', 'xml']);
-
 const CodeBlock = ({ language, value, theme }: { language: string, value: string, theme: string }) => {
   const [copied, setCopied] = useState(false);
 
@@ -49,23 +47,26 @@ const CodeBlock = ({ language, value, theme }: { language: string, value: string
   };
 
   return (
-    <div className="relative group rounded-md border border-[var(--border-subtle)] my-4 overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-1.5 bg-[var(--bg-surface-hover)] border-b border-[var(--border-subtle)] text-[0.75rem] text-[var(--text-muted)] font-mono uppercase tracking-wider">
-        {language}
+    <div className="relative group rounded-xl border border-white/10 my-4 overflow-hidden shadow-lg bg-[#0A0A0F]">
+      <div className="flex items-center justify-between px-4 py-2 bg-[#12121A] border-b border-white/5 text-[0.72rem] text-zinc-400 font-mono uppercase tracking-wider">
+        <span className="flex items-center gap-1.5 font-semibold text-zinc-300">
+          <span className="w-2 h-2 rounded-full bg-[#8B2BFF]" />
+          {language || 'code'}
+        </span>
         <button 
           onClick={handleCopy}
-          className="flex items-center gap-1.5 hover:text-[var(--text-primary)] transition-colors"
+          className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer border-none bg-transparent text-zinc-400"
           title="Copy code"
         >
-          {copied ? <Check size={14} className="text-[var(--success)]" /> : <Copy size={14} />}
-          {copied ? 'Copied!' : 'Copy'}
+          {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+          <span className="text-[0.68rem]">{copied ? 'Copied!' : 'Copy code'}</span>
         </button>
       </div>
       <SyntaxHighlighter
         style={(theme === 'dark' ? vscDarkPlus : oneLight) as any}
         language={language}
         PreTag="div"
-        customStyle={{ margin: 0, borderRadius: 0 }}
+        customStyle={{ margin: 0, padding: '1rem', background: '#07070A', fontSize: '0.86rem', lineHeight: '1.6' }}
       >
         {value}
       </SyntaxHighlighter>
@@ -90,7 +91,15 @@ interface MessageBubbleProps {
   onSuggestedPrompt?: (prompt: string) => void;
 }
 
-export function MessageBubble({ message, botName = 'Autumn', onRetry, isGenerating = false, onEdit, suggestedPrompts, onSuggestedPrompt }: MessageBubbleProps) {
+export function MessageBubble({ 
+  message, 
+  botName = 'Autumn', 
+  onRetry, 
+  isGenerating = false, 
+  onEdit, 
+  suggestedPrompts, 
+  onSuggestedPrompt 
+}: MessageBubbleProps) {
   const isUser = message.role === 'user';
   const status = message.status ?? 'complete';
   const isError = !isUser && status === 'error';
@@ -104,6 +113,7 @@ export function MessageBubble({ message, botName = 'Autumn', onRetry, isGenerati
   const [suggestion, setSuggestion] = useState('');
   const [showSuggestionInput, setShowSuggestionInput] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [copiedResponse, setCopiedResponse] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   const parsedCharts = useMemo(() => {
@@ -118,9 +128,8 @@ export function MessageBubble({ message, botName = 'Autumn', onRetry, isGenerati
       window.speechSynthesis.cancel();
       setIsPlaying(false);
     } else {
-      window.speechSynthesis.cancel(); // Cancel any existing speech
+      window.speechSynthesis.cancel();
       
-      // Clean up markdown before speaking
       const plainText = message.content
         .replace(/```[\s\S]*?```/g, ' Code block omitted. ')
         .replace(/\[Source: Page \d+\]/g, '')
@@ -132,6 +141,12 @@ export function MessageBubble({ message, botName = 'Autumn', onRetry, isGenerati
       window.speechSynthesis.speak(utterance);
       setIsPlaying(true);
     }
+  };
+
+  const handleCopyResponse = () => {
+    navigator.clipboard.writeText(message.content);
+    setCopiedResponse(true);
+    setTimeout(() => setCopiedResponse(false), 2000);
   };
 
   useEffect(() => {
@@ -162,200 +177,272 @@ export function MessageBubble({ message, botName = 'Autumn', onRetry, isGenerati
         setShowSuggestionInput(false);
       }
     } catch {
-      // Feedback is optional and must never disrupt the conversation.
+      // Feedback is optional and must not disrupt the conversation.
     }
   };
 
   return (
-    <div className={clsx("flex w-full mb-5 group max-w-[960px] mx-auto", isUser ? "justify-end" : "justify-start gap-3.5")}>
+    <div className={clsx("flex w-full mb-6 group max-w-[960px] mx-auto", isUser ? "justify-end" : "justify-start gap-4")}>
+      
+      {/* Assistant Avatar */}
       {!isUser && (
-        <div className="w-8 h-8 rounded-xl bg-[var(--bg-surface)] border border-[color-mix(in_srgb,var(--accent)_35%,transparent)] shrink-0 p-0.5 shadow-xs mt-1">
-          <img src="/logo.png" alt="AI Avatar" className="w-full h-full rounded-lg object-cover" />
+        <div className="relative w-8 h-8 rounded-xl bg-black border border-[#8B2BFF]/40 p-1 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(139,43,255,0.4)] mt-1">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#8B2BFF] shadow-[0_0_8px_#8B2BFF]" />
         </div>
       )}
       
-      <div className={clsx("flex flex-col gap-1 min-w-0", isUser ? "items-end max-w-[80%]" : "items-start flex-1")}>
+      <div className={clsx("flex flex-col gap-1 min-w-0", isUser ? "items-end max-w-[85%]" : "items-start flex-1")}>
+        
+        {/* Assistant Header */}
         {!isUser && (
           <div className="flex items-center gap-2 mb-1 px-1">
-            <span className="text-[0.92rem] font-bold text-[var(--accent)]">{botName}</span>
-            <span className="text-[var(--text-muted)] text-[0.68rem]">Just now</span>
+            <span className="text-[0.88rem] font-bold text-white flex items-center gap-1.5">
+              {botName}
+              <span className="text-[0.62rem] text-[#8B2BFF] bg-[#8B2BFF]/15 border border-[#8B2BFF]/30 px-1.5 py-0.2 rounded-sm uppercase tracking-wider font-semibold">AI OS</span>
+            </span>
+            <span className="text-zinc-500 text-[0.68rem]">Just now</span>
           </div>
         )}
         
+        {/* Bubble Content */}
         <div className={clsx(
           "leading-relaxed break-words overflow-hidden relative group/bubble text-[0.93rem]",
           isUser 
-            ? "bg-[var(--msg-user-bg)] border border-[var(--msg-user-border)] text-[var(--text-primary)] shadow-xs py-2.5 px-4 rounded-2xl rounded-tr-xs" 
+            ? "bg-[#0E0C16] border border-[#8B2BFF]/35 text-white shadow-[0_0_20px_rgba(139,43,255,0.12)] py-3 px-5 rounded-2xl rounded-tr-xs" 
             : isError
-              ? "bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] text-[var(--error)] py-3 px-4 rounded-2xl w-full"
-              : "bg-transparent text-[var(--text-primary)] w-full"
+              ? "bg-red-500/10 border border-red-500/30 text-red-300 py-4 px-5 rounded-2xl w-full shadow-sm"
+              : "bg-transparent text-zinc-100 w-full"
         )}>
+          
+          {/* Edit User Message Button */}
           {isUser && !isEditing && onEdit && (
             <button
               onClick={() => setIsEditing(true)}
-              className="absolute top-2 right-2 p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] opacity-0 group-hover/bubble:opacity-100 transition-opacity"
+              className="absolute top-2 right-2 p-1.5 rounded-md text-zinc-500 hover:text-white hover:bg-white/5 opacity-0 group-hover/bubble:opacity-100 transition-opacity"
               title="Edit Message"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
             </button>
           )}
 
           {isError ? (
-            <div className="font-medium">{message.content || "Couldn't generate a response"}</div>
+            <div className="flex flex-col gap-2">
+              <div className="font-semibold text-red-400">Execution Notice</div>
+              <div className="text-xs text-red-300 leading-relaxed font-mono bg-red-950/40 p-3 rounded-lg border border-red-500/20">
+                {message.content || "Couldn't generate a response"}
+              </div>
+            </div>
           ) : isEditing ? (
-            <div className="flex flex-col gap-2 min-w-[250px]">
+            <div className="flex flex-col gap-2 min-w-[280px]">
               <textarea
                 ref={textareaRef}
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
-                className="w-full bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-md p-2 text-sm focus:outline-none focus:border-[var(--accent)] resize-none"
-                rows={1}
+                className="w-full bg-black text-white border border-[#8B2BFF]/40 rounded-xl p-3 text-sm focus:outline-none focus:border-[#8B2BFF] resize-none"
+                rows={2}
               />
               <div className="flex gap-2 justify-end">
-                <button onClick={() => { setIsEditing(false); setEditValue(message.content); }} className="px-3 py-1 text-sm rounded-md bg-[var(--bg-surface-hover)] text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors">
+                <button onClick={() => { setIsEditing(false); setEditValue(message.content); }} className="px-3 py-1.5 text-xs rounded-lg bg-zinc-800 text-zinc-300 hover:text-white transition-colors">
                   Cancel
                 </button>
-                <button onClick={handleSaveEdit} className="px-3 py-1 text-sm rounded-md bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] transition-colors">
-                  Save & Send
+                <button onClick={handleSaveEdit} className="px-3 py-1.5 text-xs rounded-lg bg-[#8B2BFF] text-white hover:bg-[#9D4BFF] transition-colors font-medium">
+                  Save & Resend
                 </button>
               </div>
             </div>
           ) : (
-            <div className={clsx("prose max-w-none w-full", theme === 'dark' && "prose-invert", status === 'sending' && "typing-cursor")}>
+            <div className={clsx("prose max-w-none w-full text-zinc-100", theme === 'dark' && "prose-invert", status === 'sending' && "typing-cursor")}>
+              
+              {/* Optional Recharts Table Visualizer */}
               {parsedCharts && parsedCharts.map((chart: any, idx: number) => (
-                <div key={idx} className="w-full h-[300px] bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded-xl p-4 my-4 shadow-sm">
-                  <h4 className="text-sm font-semibold mb-2 text-center text-[var(--text-secondary)]">Data Visualization</h4>
+                <div key={idx} className="w-full h-[300px] bg-[#0A0A0F] border border-white/10 rounded-xl p-4 my-4 shadow-md">
+                  <h4 className="text-xs font-semibold mb-2 text-center text-zinc-400 uppercase tracking-wider">Dynamic Data Chart</h4>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chart!.data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
-                      <XAxis dataKey={chart!.xAxisKey} stroke="var(--text-muted)" fontSize={12} />
-                      <YAxis stroke="var(--text-muted)" fontSize={12} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <XAxis dataKey={chart!.xAxisKey} stroke="#71717A" fontSize={11} />
+                      <YAxis stroke="#71717A" fontSize={11} />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)', color: 'var(--text-primary)', borderRadius: '8px' }}
-                        itemStyle={{ color: 'var(--accent)' }}
+                        contentStyle={{ backgroundColor: '#0D0D14', borderColor: 'rgba(139,43,255,0.3)', color: '#FFFFFF', borderRadius: '12px' }}
+                        itemStyle={{ color: '#8B2BFF' }}
                       />
-                      <Legend wrapperStyle={{ fontSize: '12px' }}/>
+                      <Legend wrapperStyle={{ fontSize: '11px' }}/>
                       {chart!.dataKeys.map((key: string, i: number) => (
-                        <Bar key={key} dataKey={key} fill={i === 0 ? 'var(--accent)' : i === 1 ? 'var(--success)' : 'var(--error)'} radius={[4, 4, 0, 0]} />
+                        <Bar key={key} dataKey={key} fill={i === 0 ? '#8B2BFF' : i === 1 ? '#10B981' : '#EF4444'} radius={[4, 4, 0, 0]} />
                       ))}
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               ))}
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              table({ children, ...props }: any) {
-                return (
-                  <div className="overflow-x-auto my-4 w-full border border-[var(--border-subtle)] rounded-lg">
-                    <table className="w-full text-left border-collapse text-sm" {...props}>
-                      {children}
-                    </table>
-                  </div>
-                );
-              },
-              thead({ children, ...props }: any) {
-                return <thead className="bg-[var(--bg-surface-hover)] border-b border-[var(--border-subtle)]" {...props}>{children}</thead>;
-              },
-              th({ children, ...props }: any) {
-                return <th className="px-4 py-2 font-semibold text-[var(--text-primary)]" {...props}>{children}</th>;
-              },
-              td({ children, ...props }: any) {
-                return <td className="px-4 py-2 border-b border-[var(--border-subtle)] text-[var(--text-secondary)]" {...props}>{children}</td>;
-              },
-              code({ className, children, ...props }: any) {
-                const match = /language-(\w+)/.exec(className || '');
-                const codeStr = String(children).replace(/\n$/, '');
-                return match ? (
-                  <CodeBlock language={match[1]} value={codeStr} theme={theme} />
-                ) : (
-                  <code className="bg-[var(--bg-surface-hover)] text-[var(--accent)] px-1.5 py-0.5 rounded-[var(--radius-sm)] font-mono text-sm" {...props}>
-                    {children}
-                  </code>
-                );
-              }
-            }}
-          >
-            {message.content}
-          </ReactMarkdown>
-          </div>
+
+              {/* Markdown Content */}
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  table({ children, ...props }: any) {
+                    return (
+                      <div className="overflow-x-auto my-4 w-full border border-white/10 rounded-xl bg-[#09090D] shadow-sm">
+                        <table className="w-full text-left border-collapse text-xs" {...props}>
+                          {children}
+                        </table>
+                      </div>
+                    );
+                  },
+                  thead({ children, ...props }: any) {
+                    return <thead className="bg-[#12121A] border-b border-white/10 text-white" {...props}>{children}</thead>;
+                  },
+                  th({ children, ...props }: any) {
+                    return <th className="px-4 py-2.5 font-bold text-white tracking-wider" {...props}>{children}</th>;
+                  },
+                  td({ children, ...props }: any) {
+                    return <td className="px-4 py-2 border-b border-white/5 text-zinc-300" {...props}>{children}</td>;
+                  },
+                  code({ className, children, ...props }: any) {
+                    const match = /language-(\w+)/.exec(className || '');
+                    const codeStr = String(children).replace(/\n$/, '');
+                    return match ? (
+                      <CodeBlock language={match[1]} value={codeStr} theme={theme} />
+                    ) : (
+                      <code className="bg-[#161622] text-[#A75BFF] px-1.5 py-0.5 rounded font-mono text-[0.82rem] border border-[#8B2BFF]/20" {...props}>
+                        {children}
+                      </code>
+                    );
+                  }
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            </div>
           )}
         
-        {isAborted && (
-          <div className="mt-2 text-[0.8rem] text-[var(--text-muted)]">Response was cut off</div>
-        )}
-        {isError && onRetry && (
-          <button
-            type="button"
-            onClick={onRetry}
-            disabled={isGenerating}
-            className="mt-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors underline cursor-pointer border-none bg-transparent p-0"
-          >
-            Retry
-          </button>
-        )}
-        {!isUser && !isError && status === 'complete' && (
-          <div className="mt-2 flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-[var(--text-muted)]" aria-label="Rate this answer">
-              <button type="button" onClick={() => { setShowSuggestionInput(false); submitFeedback('positive'); }} aria-label="Helpful answer" aria-pressed={feedback === 'positive'} title="Helpful" className={clsx('rounded p-1 hover:bg-[var(--bg-surface-hover)] hover:text-[var(--success)]', feedback === 'positive' && 'text-[var(--success)]')}><ThumbsUp size={14} /></button>
-              <button type="button" onClick={() => {
-                setFeedbackSaved(false);
-                if (showSuggestionInput) {
-                  setShowSuggestionInput(false);
-                  submitFeedback('negative');
-                } else {
-                  setShowSuggestionInput(true);
-                }
-              }} aria-label="Unhelpful answer" aria-pressed={feedback === 'negative'} title="Not helpful" className={clsx('rounded p-1 hover:bg-[var(--bg-surface-hover)] hover:text-[var(--error)]', feedback === 'negative' && 'text-[var(--error)]')}><ThumbsDown size={14} /></button>
-              <button type="button" onClick={toggleSpeech} aria-label={isPlaying ? "Stop reading" : "Read aloud"} title={isPlaying ? "Stop reading" : "Read aloud"} className={clsx('rounded p-1 hover:bg-[var(--bg-surface-hover)] hover:text-[var(--legacy-accent)]', isPlaying && 'text-[var(--legacy-accent)] animate-pulse')}>
-                {isPlaying ? <VolumeX size={14} /> : <Volume2 size={14} />}
-              </button>
-              {feedbackSaved && <span className="text-xs text-[var(--text-muted)]">Thanks for your feedback</span>}
-            </div>
-            {showSuggestionInput && (
-              <div className="flex flex-col w-full max-w-md mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                <div className="flex items-center gap-2 bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] rounded-full px-4 py-2 focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)] transition-all shadow-sm">
-                  <input 
-                    value={suggestion}
-                    onChange={(e) => setSuggestion(e.target.value)}
-                    placeholder="Provide a correction to train the bot..."
-                    className="flex-1 bg-transparent text-[var(--text-primary)] text-xs focus:outline-none placeholder-[var(--text-muted)]"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && suggestion.trim()) {
-                        e.preventDefault();
-                        submitFeedback('negative', suggestion);
-                      }
-                    }}
-                    autoFocus
-                  />
-                  {suggestion.trim() ? (
-                    <button type="button" onClick={() => submitFeedback('negative', suggestion)} className="text-[var(--accent)] hover:opacity-80 transition-opacity" title="Save correction">
-                      <Send size={14} />
-                    </button>
-                  ) : (
-                    <button type="button" onClick={() => { setShowSuggestionInput(false); submitFeedback('negative'); }} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors text-[10px] uppercase font-bold tracking-wider px-1">
-                      Skip
-                    </button>
-                  )}
-                </div>
+          {isAborted && (
+            <div className="mt-2 text-[0.75rem] text-zinc-500 font-medium italic">Response was stopped</div>
+          )}
+
+          {isError && onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              disabled={isGenerating}
+              className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#8B2BFF]/20 hover:bg-[#8B2BFF]/30 border border-[#8B2BFF]/40 text-xs text-white font-medium transition-colors cursor-pointer"
+            >
+              <RotateCw size={12} />
+              <span>Retry generation</span>
+            </button>
+          )}
+
+          {/* Action Bar for Assistant */}
+          {!isUser && !isError && status === 'complete' && (
+            <div className="mt-3 pt-2 flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-zinc-400" aria-label="Message actions">
+                
+                {/* Thumbs Up */}
+                <button 
+                  type="button" 
+                  onClick={() => { setShowSuggestionInput(false); submitFeedback('positive'); }} 
+                  aria-label="Helpful answer" 
+                  aria-pressed={feedback === 'positive'} 
+                  title="Helpful" 
+                  className={clsx('rounded-lg p-1.5 hover:bg-white/5 hover:text-emerald-400 transition-colors', feedback === 'positive' && 'text-emerald-400 bg-emerald-500/10')}
+                >
+                  <ThumbsUp size={13} />
+                </button>
+
+                {/* Thumbs Down */}
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setFeedbackSaved(false);
+                    if (showSuggestionInput) {
+                      setShowSuggestionInput(false);
+                      submitFeedback('negative');
+                    } else {
+                      setShowSuggestionInput(true);
+                    }
+                  }} 
+                  aria-label="Unhelpful answer" 
+                  aria-pressed={feedback === 'negative'} 
+                  title="Not helpful" 
+                  className={clsx('rounded-lg p-1.5 hover:bg-white/5 hover:text-red-400 transition-colors', feedback === 'negative' && 'text-red-400 bg-red-500/10')}
+                >
+                  <ThumbsDown size={13} />
+                </button>
+
+                {/* Copy Response */}
+                <button 
+                  type="button" 
+                  onClick={handleCopyResponse}
+                  aria-label="Copy entire response" 
+                  title="Copy response" 
+                  className="rounded-lg p-1.5 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-1"
+                >
+                  {copiedResponse ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                </button>
+
+                {/* Read aloud */}
+                <button 
+                  type="button" 
+                  onClick={toggleSpeech} 
+                  aria-label={isPlaying ? "Stop reading" : "Read aloud"} 
+                  title={isPlaying ? "Stop reading" : "Read aloud"} 
+                  className={clsx('rounded-lg p-1.5 hover:bg-white/5 hover:text-[#8B2BFF] transition-colors', isPlaying && 'text-[#8B2BFF] animate-pulse')}
+                >
+                  {isPlaying ? <VolumeX size={13} /> : <Volume2 size={13} />}
+                </button>
+
+                {feedbackSaved && (
+                  <span className="text-[0.68rem] text-emerald-400 ml-1">Feedback saved</span>
+                )}
               </div>
-            )}
-          </div>
-        )}
-        {!isUser && !isError && suggestedPrompts?.length && onSuggestedPrompt && (
-          <div className="mt-3 flex flex-wrap gap-2" aria-label="Suggested document actions">
-            {suggestedPrompts.map((prompt) => (
-              <button
-                key={prompt}
-                type="button"
-                onClick={() => onSuggestedPrompt(prompt)}
-                className="rounded-full border border-[color-mix(in_srgb,var(--accent)_45%,var(--border-subtle))] bg-[var(--bg-surface)] px-3 py-1.5 text-left text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--accent)] hover:text-[var(--text-primary)]"
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
-        )}
+
+              {/* Memory Training Correction Input */}
+              {showSuggestionInput && (
+                <div className="flex flex-col w-full max-w-md mt-1 animate-fade-in">
+                  <div className="flex items-center gap-2 bg-[#0D0D14] border border-[#8B2BFF]/40 rounded-full px-3.5 py-1.5 shadow-sm">
+                    <input 
+                      value={suggestion}
+                      onChange={(e) => setSuggestion(e.target.value)}
+                      placeholder="Add correction to train Autumn's AI memory..."
+                      className="flex-1 bg-transparent text-white text-xs focus:outline-none placeholder-zinc-500"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && suggestion.trim()) {
+                          e.preventDefault();
+                          submitFeedback('negative', suggestion);
+                        }
+                      }}
+                      autoFocus
+                    />
+                    {suggestion.trim() ? (
+                      <button type="button" onClick={() => submitFeedback('negative', suggestion)} className="text-[#8B2BFF] hover:text-white transition-colors" title="Save correction">
+                        <Send size={13} />
+                      </button>
+                    ) : (
+                      <button type="button" onClick={() => { setShowSuggestionInput(false); submitFeedback('negative'); }} className="text-zinc-500 hover:text-white text-[0.65rem] uppercase font-bold tracking-wider px-1">
+                        Skip
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Follow-up Suggested Prompts */}
+          {!isUser && !isError && suggestedPrompts?.length && onSuggestedPrompt && (
+            <div className="mt-3 flex flex-wrap gap-2" aria-label="Suggested follow-up actions">
+              {suggestedPrompts.map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  onClick={() => onSuggestedPrompt(prompt)}
+                  className="rounded-full border border-[#8B2BFF]/30 bg-[#0D0D14] hover:bg-[#8B2BFF]/15 px-3 py-1.5 text-left text-xs font-medium text-zinc-300 hover:text-white transition-all shadow-xs cursor-pointer"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          )}
+
         </div>
       </div>
     </div>

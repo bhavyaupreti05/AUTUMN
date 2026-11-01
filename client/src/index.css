@@ -1,34 +1,39 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
+
 @layer base {
   :root,
   .dark {
-    /* Warm Autumn Elegance - Dark (Default) */
-    --bg-primary: #0D0F12;
-    --bg-sidebar: #13161C;
-    --bg-surface: #1A1E26;
-    --bg-surface-hover: #232934;
-    --border-subtle: rgba(255, 255, 255, 0.08);
-    --border-hover: rgba(255, 255, 255, 0.16);
+    /* Autumn Personal AI OS - Pure Black & Neon Purple Identity */
+    --bg-primary: #000000;
+    --bg-sidebar: #060608;
+    --bg-surface: #0B0B10;
+    --bg-surface-hover: #12121A;
+    --bg-card: #0D0D14;
+    --bg-card-hover: #161622;
+
+    --border-subtle: rgba(255, 255, 255, 0.07);
+    --border-purple: rgba(139, 43, 255, 0.22);
+    --border-hover: rgba(139, 43, 255, 0.45);
     
-    --text-primary: #F3F4F6;
-    --text-secondary: #9DA5B4;
-    --text-muted: #656C7B;
+    --text-primary: #FFFFFF;
+    --text-secondary: #9CA3AF;
+    --text-muted: #6B7280;
     
-    --accent: #E07A3F;
-    --accent-hover: #F08E55;
-    --accent-muted: rgba(224, 122, 63, 0.14);
+    --accent: #8B2BFF;
+    --accent-hover: #A04BFF;
+    --accent-muted: rgba(139, 43, 255, 0.12);
     
-    --energy-gradient: linear-gradient(135deg, #F98C4E 0%, #E07A3F 50%, #C85F28 100%);
-    --energy-glow: 0 4px 20px rgba(224, 122, 63, 0.28);
+    --energy-gradient: linear-gradient(135deg, #B055FF 0%, #8B2BFF 50%, #581C87 100%);
+    --energy-glow: 0 0 25px rgba(139, 43, 255, 0.32);
     
-    --success: #10b981;
-    --error: #ef4444;
-    --warning: #f59e0b;
+    --success: #10B981;
+    --error: #EF4444;
+    --warning: #F59E0B;
 
     /* Message Bubbles */
-    --msg-user-bg: #1E232D;
-    --msg-user-border: rgba(224, 122, 63, 0.25);
+    --msg-user-bg: #0E0C16;
+    --msg-user-border: rgba(139, 43, 255, 0.35);
     --msg-assistant-bg: transparent;
 
     /* Spacing System */
@@ -42,9 +47,9 @@
 
     /* Border Radius */
     --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 18px;
-    --radius-xl: 24px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 28px;
     --radius-full: 9999px;
     
     /* Shadcn Fallback Mapping */
@@ -55,7 +60,7 @@
     --popover: var(--bg-surface);
     --popover-foreground: var(--text-primary);
     --primary: var(--accent);
-    --primary-foreground: #ffffff;
+    --primary-foreground: #FFFFFF;
     --secondary: var(--bg-surface-hover);
     --secondary-foreground: var(--text-primary);
     --muted: var(--bg-surface-hover);
@@ -65,29 +70,34 @@
     --ring: var(--accent);
     --radius: var(--radius-md);
   }
-  .light {
-    /* Warm Autumn Elegance - Light */
-    --bg-primary: #F8F9FA;
-    --bg-sidebar: #F0F2F5;
-    --bg-surface: #FFFFFF;
-    --bg-surface-hover: #E8EBF0;
-    --border-subtle: rgba(0, 0, 0, 0.08);
-    --border-hover: rgba(0, 0, 0, 0.14);
-    
-    --text-primary: #16181D;
-    --text-secondary: #484E5B;
-    --text-muted: #828A99;
-    
-    --accent: #D2652B;
-    --accent-hover: #B8531D;
-    --accent-muted: rgba(210, 101, 43, 0.12);
 
-    --energy-gradient: linear-gradient(135deg, #E6773E 0%, #D2652B 50%, #B8531D 100%);
-    --energy-glow: 0 4px 16px rgba(210, 101, 43, 0.22);
+  .light {
+    /* Autumn Sleek Light Mode fallback */
+    --bg-primary: #F8F9FC;
+    --bg-sidebar: #F0F2F8;
+    --bg-surface: #FFFFFF;
+    --bg-surface-hover: #ECEFF6;
+    --bg-card: #FFFFFF;
+    --bg-card-hover: #F5F7FB;
+
+    --border-subtle: rgba(0, 0, 0, 0.08);
+    --border-purple: rgba(139, 43, 255, 0.25);
+    --border-hover: rgba(139, 43, 255, 0.45);
+    
+    --text-primary: #111827;
+    --text-secondary: #4B5563;
+    --text-muted: #6B7280;
+    
+    --accent: #7C1FE6;
+    --accent-hover: #6917C7;
+    --accent-muted: rgba(124, 31, 230, 0.1);
+
+    --energy-gradient: linear-gradient(135deg, #8B2BFF 0%, #7C1FE6 50%, #581C87 100%);
+    --energy-glow: 0 4px 20px rgba(124, 31, 230, 0.22);
 
     /* Message Bubbles */
-    --msg-user-bg: #FFFFFF;
-    --msg-user-border: rgba(210, 101, 43, 0.25);
+    --msg-user-bg: #F4EFFF;
+    --msg-user-border: rgba(124, 31, 230, 0.25);
     --msg-assistant-bg: transparent;
   }
 }
@@ -99,14 +109,16 @@
   body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   /* Scrollbar */
-  ::-webkit-scrollbar { width: var(--sp-2); height: var(--sp-2); }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: var(--radius-full); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(139, 43, 255, 0.4); }
   
   /* Typing Cursor Animation */
   @keyframes blink {
@@ -118,4 +130,39 @@
     animation: blink 1s step-start infinite;
     color: var(--accent);
   }
+}
+
+/* Custom Glass & Glow Utilities */
+.glass-panel {
+  background: rgba(11, 11, 16, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-card {
+  background: rgba(13, 13, 20, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: rgba(18, 18, 28, 0.95);
+  border-color: rgba(139, 43, 255, 0.35);
+  box-shadow: 0 10px 30px -10px rgba(139, 43, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.purple-glow-sm {
+  box-shadow: 0 0 15px rgba(139, 43, 255, 0.25);
+}
+
+.purple-glow-md {
+  box-shadow: 0 0 25px rgba(139, 43, 255, 0.35);
+}
+
+.purple-glow-lg {
+  box-shadow: 0 0 45px rgba(139, 43, 255, 0.45);
 }

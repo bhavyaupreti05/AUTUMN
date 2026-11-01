@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import type { KeyboardEvent } from 'react';
-import { Send, Paperclip, Loader2, Mic } from 'lucide-react';
-import type { ChangeEvent } from 'react';
+import type { KeyboardEvent, ChangeEvent } from 'react';
+import { Send, Paperclip, Loader2, Mic, Square } from 'lucide-react';
 
 // SpeechRecognition Types
 declare global {
@@ -22,7 +21,15 @@ interface ChatInputProps {
   botName?: string;
 }
 
-export function ChatInput({ onSendMessage, disabled, onUploadFile, isUploading, isGenerating, onStop, isNewChat: _isNewChat, botName = 'Autumn' }: ChatInputProps) {
+export function ChatInput({ 
+  onSendMessage, 
+  disabled, 
+  onUploadFile, 
+  isUploading, 
+  isGenerating, 
+  onStop, 
+  botName = 'Autumn' 
+}: ChatInputProps) {
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -76,7 +83,7 @@ export function ChatInput({ onSendMessage, disabled, onUploadFile, isUploading, 
       recognitionRef.current.stop();
       setIsRecording(false);
     } else {
-      setInput(''); // Clear input on new recording
+      setInput('');
       try {
         recognitionRef.current.start();
         setIsRecording(true);
@@ -114,13 +121,17 @@ export function ChatInput({ onSendMessage, disabled, onUploadFile, isUploading, 
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 180)}px`;
     }
   }, [input]);
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-[var(--bg-primary)] from-75% via-[var(--bg-primary)]/70 to-transparent flex flex-col items-center pointer-events-none z-20">
-      <div className="w-full max-w-[880px] flex items-end gap-2 bg-[var(--bg-surface)]/95 backdrop-blur-md border border-[var(--border-subtle)] rounded-2xl py-2 px-3.5 shadow-[0_8px_30px_rgba(0,0,0,0.12)] focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)] transition-all pointer-events-auto">
+    <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-5 bg-gradient-to-t from-black via-black/85 to-transparent flex flex-col items-center pointer-events-none z-30">
+      
+      {/* SECTION G: Chat Composer Container */}
+      <div className="w-full max-w-[880px] flex items-end gap-2.5 bg-[#09090D] border border-[#8B2BFF]/35 rounded-[24px] py-2.5 px-4 shadow-[0_0_25px_rgba(139,43,255,0.18)] focus-within:border-[#8B2BFF] focus-within:shadow-[0_0_35px_rgba(139,43,255,0.32)] transition-all pointer-events-auto">
+        
+        {/* Hidden file input */}
         <input
           type="file"
           ref={fileInputRef}
@@ -128,15 +139,23 @@ export function ChatInput({ onSendMessage, disabled, onUploadFile, isUploading, 
           className="hidden"
           accept=".pdf,.docx,.xlsx,.csv"
         />
+
+        {/* Attachment Button */}
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading || disabled}
-          title="Attach Document"
+          title="Attach Document (PDF, DOCX, CSV, Excel)"
           aria-label="Attach Document"
-          className="text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] disabled:opacity-40 transition-colors shrink-0 mb-1 rounded-full w-9 h-9 flex items-center justify-center border-none bg-transparent cursor-pointer"
+          className="text-zinc-400 hover:text-white hover:bg-white/5 disabled:opacity-40 transition-colors shrink-0 mb-1 rounded-full w-9 h-9 flex items-center justify-center border-none bg-transparent cursor-pointer"
         >
-          {isUploading ? <Loader2 size={18} className="animate-spin text-[var(--accent)]" /> : <Paperclip size={18} className="rotate-45" />}
+          {isUploading ? (
+            <Loader2 size={18} className="animate-spin text-[#8B2BFF]" />
+          ) : (
+            <Paperclip size={18} className="rotate-45 hover:text-[#8B2BFF] transition-colors" />
+          )}
         </button>
+
+        {/* Multiline Textarea */}
         <textarea
           ref={textareaRef}
           value={input}
@@ -144,45 +163,51 @@ export function ChatInput({ onSendMessage, disabled, onUploadFile, isUploading, 
           onKeyDown={handleKeyDown}
           disabled={disabled || isUploading}
           placeholder={(disabled || isUploading || isGenerating) ? `${botName} is thinking...` : `Ask ${botName} anything...`}
-          className="flex-1 max-h-[160px] bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)] py-2.5 px-1 outline-none resize-none overflow-y-auto leading-relaxed border-none text-[0.95rem]"
+          className="flex-1 max-h-[160px] bg-transparent text-white placeholder:text-zinc-500 py-2 px-1 outline-none resize-none overflow-y-auto leading-relaxed border-none text-[0.94rem] font-normal"
           rows={1}
         />
+
+        {/* Action Buttons: Stop / Voice / Purple Circular Send */}
         {isGenerating ? (
           <button
             onClick={onStop}
-            className="w-9 h-9 shrink-0 mb-1 text-[var(--error)] bg-[color-mix(in_srgb,var(--error)_12%,transparent)] hover:bg-[color-mix(in_srgb,var(--error)_22%,transparent)] rounded-full transition-all flex items-center justify-center border border-[color-mix(in_srgb,var(--error)_30%,transparent)] shadow-xs"
+            className="w-10 h-10 shrink-0 mb-0.5 text-white bg-red-600/80 hover:bg-red-600 rounded-full transition-all flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.4)] cursor-pointer border border-red-500/40"
             title="Stop generating"
             aria-label="Stop generating"
           >
-            <div className="w-3 h-3 bg-current rounded-xs" />
+            <Square size={14} className="fill-current" />
           </button>
         ) : (
-          <div className="flex items-center gap-1.5 shrink-0 mb-1">
+          <div className="flex items-center gap-1.5 shrink-0 mb-0.5">
+            {/* Voice input */}
             <button
               onClick={toggleRecording}
               disabled={disabled || isUploading}
-              className={`w-9 h-9 rounded-full ${isRecording ? 'text-white bg-[var(--error)] animate-pulse' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'} transition-all flex items-center justify-center disabled:opacity-40 border-none bg-transparent cursor-pointer`}
+              className={`w-9 h-9 rounded-full ${isRecording ? 'text-white bg-red-600 animate-pulse' : 'text-zinc-400 hover:text-white hover:bg-white/5'} transition-all flex items-center justify-center disabled:opacity-40 border-none bg-transparent cursor-pointer`}
               title={isRecording ? "Stop recording" : "Voice Input"}
               aria-label="Voice Input"
             >
-              <Mic size={17} />
+              <Mic size={18} className={isRecording ? "text-white" : "hover:text-[#8B2BFF]"} />
             </button>
+
+            {/* Purple Circular Send Button */}
             <button
               onClick={handleSend}
               disabled={!input.trim() || disabled}
-              className="w-9 h-9 text-white bg-[var(--energy-gradient)] hover:shadow-[var(--energy-glow)] hover:brightness-110 active:scale-95 rounded-full disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center border-none cursor-pointer shadow-xs"
+              className="w-10 h-10 text-white bg-gradient-to-tr from-[#8B2BFF] via-[#7B1FFF] to-[#581C87] hover:brightness-110 active:scale-95 rounded-full disabled:opacity-35 disabled:cursor-not-allowed transition-all flex items-center justify-center border border-[#A75BFF]/30 cursor-pointer shadow-[0_0_18px_rgba(139,43,255,0.45)]"
               title="Send message"
               aria-label="Send message"
             >
-              <Send size={15} className={input.trim() ? "translate-x-[-0.5px]" : ""} />
+              <Send size={15} className="translate-x-[1px]" />
             </button>
           </div>
         )}
       </div>
       
-      <div className="w-full max-w-[880px] mt-2 pt-1 pointer-events-auto">
-        <p className="text-center text-[0.68rem] text-[var(--text-muted)] tracking-wide">
-          <span className="font-medium text-[var(--text-secondary)]">Autumn AI</span> • Private & Local • Information should be independently verified.
+      {/* Subtle Bottom Attribution */}
+      <div className="w-full max-w-[880px] mt-2 pointer-events-auto">
+        <p className="text-center text-[0.68rem] text-zinc-500 tracking-wide font-medium">
+          <span className="text-[#8B2BFF] font-semibold">Autumn AI</span> • Enterprise Grade Local & Cloud Intelligence • Shift+Enter for new line
         </p>
       </div>
     </div>
