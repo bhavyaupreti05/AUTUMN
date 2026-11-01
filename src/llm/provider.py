@@ -1,7 +1,17 @@
 from abc import ABC, abstractmethod
-from typing import Generator, Dict, Any
-from llama_cpp import Llama
+from typing import Generator, Dict, Any, List
+import json
+import logging
+import httpx
+import threading
 from src.config import settings
+
+logger = logging.getLogger(__name__)
+
+try:
+    from llama_cpp import Llama
+except ImportError:
+    Llama = None
 
 class LLMProvider(ABC):
     @abstractmethod
@@ -13,11 +23,14 @@ class LLMProvider(ABC):
         pass
 
 
-import threading
-
 class QwenProvider(LLMProvider):
     def __init__(self):
-        # Initialize llama.cpp model
+        if Llama is None:
+            raise RuntimeError(
+                "llama-cpp-python is not installed. To run locally, install llama-cpp-python. "
+                "Alternatively, set GROQ_API_KEY in your environment to use Groq cloud inference."
+            )
+
         import uuid
         import time
         import os
@@ -132,4 +145,98 @@ class QwenProvider(LLMProvider):
 
     def health_check(self) -> bool:
         # Simple health check to verify model is loaded
-        return self.llm is not None
+        return getattr(self, "llm", None) is not None
+
+
+class GroqProvider(LLMProvider):
+    def __init__(self, api_key: str = None, model: str = None):
+        self.api_key = api_key or settings.GROQ_API_KEY
+        self.model = model or settings.GROQ_MODEL
+        self.endpoint = "https://api.groq.com/openai/v1/chat/completions"
+
+    def _parse_prompt_to_messages(self, prompt: str) -> List[Dict[str, str]]:
+        import re
+        pattern = r"<\|im_start\|>(\w+)\n(.*?)<\|im_end\|>"
+        matches = re.findall(pattern, prompt, re.DOTALL)
+        if matches:
+            messages = []
+            for role, content in matches:
+                role_clean = role.strip().lower()
+                if role_clean not in ["system", "user", "assistant"]:
+                    role_clean = "user"
+                messages.append({"role": role_clean, "content": content.strip()})
+            return messages
+        return [{"role": "user", "content": prompt}]
+
+    def generate_stream(self, prompt: str, max_tokens: int = None, temperature: float = None, is_background_task: bool = False) -> Generator[Dict[str, Any], None, None]:
+        if not self.api_key:
+            yield {"type": "error", "error": "GROQ_API_KEY is not configured.", "status": 500}
+            return
+
+        messages = self._parse_prompt_to_messages(prompt)
+        temp = temperature if temperature is not None else settings.TEMPERATURE
+        max_tok = max_tokens if max_tokens is not None else settings.MAX_OUTPUT_TOKENS
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": temp,
+            "max_tokens": max_tok,
+            "stream": True,
+        }
+
+        final_reason = "COMPLETED"
+
+        try:
+            with httpx.Client(timeout=httpx.Timeout(120.0, connect=10.0)) as client:
+                with client.stream("POST", self.endpoint, headers=headers, json=payload) as response:
+                    if response.status_code != 200:
+                        err_text = response.read().decode("utf-8", errors="replace")
+                        logger.error(f"Groq API error {response.status_code}: {err_text}")
+                        yield {"type": "error", "error": f"Groq API error: {err_text}", "status": response.status_code}
+                        return
+
+                    for line in response.iter_lines():
+                        if not line:
+                            continue
+                        if line.startswith("data: "):
+                            data_str = line[6:].strip()
+                            if data_str == "[DONE]":
+                                break
+                            try:
+                                chunk_json = json.loads(data_str)
+                                choices = chunk_json.get("choices", [])
+                                if choices:
+                                    delta = choices[0].get("delta", {})
+                                    content = delta.get("content", "")
+                                    finish_reason = choices[0].get("finish_reason")
+                                    if content:
+                                        yield {"type": "text", "content": content}
+                                    if finish_reason:
+                                        if finish_reason == "length":
+                                            final_reason = "MAX_TOKENS"
+                                        else:
+                                            final_reason = "COMPLETED"
+                            except Exception as parse_err:
+                                logger.debug(f"Could not parse SSE chunk: {parse_err}")
+
+            yield {"type": "status", "status": final_reason}
+        except Exception as e:
+            logger.exception("Exception during Groq streaming")
+            yield {"type": "error", "error": f"LLM stream error: {str(e)}", "status": 500}
+
+    def health_check(self) -> bool:
+        return bool(self.api_key)
+
+
+def get_llm_provider() -> LLMProvider:
+    if settings.ACTIVE_PROVIDER == "groq":
+        logger.info(f"Using GroqProvider with model={settings.GROQ_MODEL}")
+        return GroqProvider()
+    logger.info("Using QwenProvider (local GGUF)")
+    return QwenProvider()

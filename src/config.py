@@ -97,6 +97,18 @@ class Settings(BaseSettings):
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8000
     
+    # LLM Provider Configuration
+    LLM_PROVIDER: str = "auto"
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+
+    @property
+    def ACTIVE_PROVIDER(self) -> str:
+        provider = (self.LLM_PROVIDER or "auto").lower()
+        if provider == "groq" or (provider == "auto" and bool(self.GROQ_API_KEY)):
+            return "groq"
+        return "local"
+
     # Model Settings
     # Path to the downloaded model
     MODEL_REPO: str = "Qwen/Qwen2.5-3B-Instruct-GGUF"
@@ -114,8 +126,17 @@ class Settings(BaseSettings):
         except Exception:
             return local_path
             
-    MODEL_NAME: str = "Qwen2.5 3B"
-    QUANTIZATION: str = "q4_k_m"
+    @property
+    def MODEL_NAME(self) -> str:
+        if self.ACTIVE_PROVIDER == "groq":
+            return f"{self.GROQ_MODEL} (Groq)"
+        return "Qwen2.5 3B"
+
+    @property
+    def QUANTIZATION(self) -> str:
+        if self.ACTIVE_PROVIDER == "groq":
+            return "cloud-fp16"
+        return "q4_k_m"
     
     # Database Settings
     DATABASE_URL: str = str(PROJECT_ROOT / "data" / "chatbot.db")

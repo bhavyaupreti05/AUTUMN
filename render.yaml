@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: autumn-ai
+    env: python
+    plan: free
+    region: oregon
+    buildCommand: "bash scripts/build_render.sh"
+    startCommand: "uvicorn src.api.main:app --host 0.0.0.0 --port $PORT --workers 1"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: ENVIRONMENT
+        value: production
+      - key: COOKIE_SECURE
+        value: true
+      - key: SINGLE_WORKER_CONFIRMED
+        value: true
+      - key: LLM_PROVIDER
+        value: groq
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GROQ_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true

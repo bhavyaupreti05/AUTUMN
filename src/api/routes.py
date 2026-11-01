@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Backgro
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
-from src.llm.provider import QwenProvider
+from src.llm.provider import get_llm_provider
 from src.services.chat_service import ChatService
 from src.database.repository import ConversationRepository
 from src.database.connection import get_connection, init_db
@@ -30,7 +30,7 @@ def get_chat_service() -> ChatService:
     if _provider is None:
         with _provider_lock:
             if _provider is None:
-                _provider = QwenProvider()
+                _provider = get_llm_provider()
     return ChatService(_provider)
 
 def get_repository() -> ConversationRepository:
