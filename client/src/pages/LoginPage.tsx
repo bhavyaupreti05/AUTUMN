@@ -5,8 +5,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { Shield, Lock, Eye, EyeOff } from 'lucide-react';
 
 export function LoginPage() {
-  const [username, setUsername] = useState('bhavya05@mail.com');
-  const [password, setPassword] = useState('12345');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -177,41 +177,6 @@ export function LoginPage() {
               </div>
             </div>
 
-            {isLogin && (
-              <div className="pt-0.5 flex items-center justify-between gap-2">
-                <span className="text-[0.72rem] text-zinc-500 font-medium">Quick Login:</span>
-                <div className="flex gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUsername('bhavya05@mail.com');
-                      setPassword('12345');
-                    }}
-                    className={`text-[0.72rem] px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                      username === 'bhavya05@mail.com'
-                        ? 'border-[#8B2BFF] bg-[#8B2BFF]/20 text-white font-semibold shadow-[0_0_10px_rgba(139,43,255,0.3)]'
-                        : 'border-white/10 bg-black text-zinc-400 hover:text-white hover:border-[#8B2BFF]/30'
-                    }`}
-                  >
-                    👑 Admin
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUsername('testuser@autumn.ai');
-                      setPassword('12345');
-                    }}
-                    className={`text-[0.72rem] px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                      username === 'testuser@autumn.ai'
-                        ? 'border-[#8B2BFF] bg-[#8B2BFF]/20 text-white font-semibold shadow-[0_0_10px_rgba(139,43,255,0.3)]'
-                        : 'border-white/10 bg-black text-zinc-400 hover:text-white hover:border-[#8B2BFF]/30'
-                    }`}
-                  >
-                    🧪 Tester
-                  </button>
-                </div>
-              </div>
-            )}
             
             <button
               type="submit"
