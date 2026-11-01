@@ -174,8 +174,11 @@ class GroqProvider(LLMProvider):
             return
 
         messages = self._parse_prompt_to_messages(prompt)
-        temp = temperature if temperature is not None else settings.TEMPERATURE
-        max_tok = max_tokens if max_tokens is not None else settings.MAX_OUTPUT_TOKENS
+        # Clamp max_tokens to 600 for Groq to stay within free-tier limits (1000 OTPM)
+        if max_tokens is not None:
+            max_tok = min(max_tokens, 600)
+        else:
+            max_tok = min(settings.MAX_OUTPUT_TOKENS, 600)
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -183,53 +186,76 @@ class GroqProvider(LLMProvider):
             "User-Agent": "Autumn-App/1.0",
         }
 
-        payload = {
-            "model": self.model,
-            "messages": messages,
-            "temperature": temp,
-            "max_tokens": max_tok,
-            "stream": True,
-        }
-
+        temp = temperature if temperature is not None else settings.TEMPERATURE
         final_reason = "COMPLETED"
+        import time
 
-        try:
-            with httpx.Client(timeout=httpx.Timeout(120.0, connect=10.0)) as client:
-                with client.stream("POST", self.endpoint, headers=headers, json=payload) as response:
-                    if response.status_code != 200:
-                        err_text = response.read().decode("utf-8", errors="replace")
-                        logger.error(f"Groq API error {response.status_code}: {err_text}")
-                        yield {"type": "error", "error": f"Groq API error: {err_text}", "status": response.status_code}
-                        return
+        for attempt in range(2):
+            curr_max_tok = max_tok if attempt == 0 else min(max_tok, 300)
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temp,
+                "max_tokens": curr_max_tok,
+                "stream": True,
+            }
 
-                    for line in response.iter_lines():
-                        if not line:
+            try:
+                with httpx.Client(timeout=httpx.Timeout(120.0, connect=10.0)) as client:
+                    with client.stream("POST", self.endpoint, headers=headers, json=payload) as response:
+                        if response.status_code == 429 and attempt == 0:
+                            time.sleep(1.5)
                             continue
-                        if line.startswith("data: "):
-                            data_str = line[6:].strip()
-                            if data_str == "[DONE]":
-                                break
-                            try:
-                                chunk_json = json.loads(data_str)
-                                choices = chunk_json.get("choices", [])
-                                if choices:
-                                    delta = choices[0].get("delta", {})
-                                    content = delta.get("content", "")
-                                    finish_reason = choices[0].get("finish_reason")
-                                    if content:
-                                        yield {"type": "text", "content": content}
-                                    if finish_reason:
-                                        if finish_reason == "length":
-                                            final_reason = "MAX_TOKENS"
-                                        else:
-                                            final_reason = "COMPLETED"
-                            except Exception as parse_err:
-                                logger.debug(f"Could not parse SSE chunk: {parse_err}")
 
-            yield {"type": "status", "status": final_reason}
-        except Exception as e:
-            logger.exception("Exception during Groq streaming")
-            yield {"type": "error", "error": f"LLM stream error: {str(e)}", "status": 500}
+                        if response.status_code != 200:
+                            err_text = response.read().decode("utf-8", errors="replace")
+                            logger.error(f"Groq API error {response.status_code}: {err_text}")
+                            if response.status_code == 429:
+                                yield {
+                                    "type": "error",
+                                    "error": "Rate limit reached on the Groq free tier. Please wait a few seconds and try again.",
+                                    "status": 429
+                                }
+                            else:
+                                yield {"type": "error", "error": f"Groq API error: {err_text}", "status": response.status_code}
+                            return
+
+                        for line in response.iter_lines():
+                            if not line:
+                                continue
+                            if line.startswith("data: "):
+                                data_str = line[6:].strip()
+                                if data_str == "[DONE]":
+                                    break
+                                try:
+                                    chunk_json = json.loads(data_str)
+                                    choices = chunk_json.get("choices", [])
+                                    if choices:
+                                        delta = choices[0].get("delta", {})
+                                        content = delta.get("content", "")
+                                        finish_reason = choices[0].get("finish_reason")
+                                        if content:
+                                            yield {"type": "text", "content": content}
+                                        if finish_reason:
+                                            if finish_reason == "length":
+                                                final_reason = "MAX_TOKENS"
+                                            else:
+                                                final_reason = "COMPLETED"
+                                except Exception as parse_err:
+                                    logger.debug(f"Could not parse SSE chunk: {parse_err}")
+
+                yield {"type": "status", "status": final_reason}
+                return
+            except Exception as e:
+                if attempt == 1:
+                    logger.exception("Exception during Groq streaming")
+                    yield {"type": "error", "error": f"LLM stream error: {str(e)}", "status": 500}
+                    return
+            except Exception as e:
+                if attempt == 1:
+                    logger.exception("Exception during Groq streaming")
+                    yield {"type": "error", "error": f"LLM stream error: {str(e)}", "status": 500}
+                    return
 
     def health_check(self) -> bool:
         return bool(self.api_key)
