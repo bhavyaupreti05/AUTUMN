@@ -198,24 +198,24 @@ export function ChatArea({
         
         {/* SECTION C: Welcome Hero */}
         <div className="w-full text-left mb-8 sm:mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8B2BFF]/10 border border-[#8B2BFF]/30 text-[#8B2BFF] text-xs font-semibold uppercase tracking-wider mb-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8B2BFF] animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-xs font-semibold uppercase tracking-wider mb-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
             Autonomous AI Operating System
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[var(--text-primary)] leading-tight">
             Welcome back,{' '}
-            <span className="text-[#8B2BFF] relative inline-block drop-shadow-[0_0_25px_rgba(139,43,255,0.45)]">
+            <span className="text-[var(--text-primary)] relative inline-block">
               {displayName}
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-zinc-400 mt-2.5 font-normal tracking-wide max-w-2xl">
+          <p className="text-base sm:text-lg text-[var(--text-secondary)] mt-2.5 font-normal tracking-wide max-w-2xl">
             Your personal AI companion, always one step ahead.
           </p>
 
-          {/* Subtle purple glowing underline */}
-          <div className="w-28 h-1 bg-gradient-to-r from-[#8B2BFF] via-[#A75BFF] to-transparent rounded-full shadow-[0_0_12px_#8B2BFF] mt-4" />
+          {/* Subtle stealth underline */}
+          <div className="w-28 h-1 bg-[var(--accent)] rounded-full opacity-60 mt-4" />
         </div>
 
         {/* SECTION D: Four Main Feature Cards */}
@@ -226,22 +226,22 @@ export function ChatArea({
               <div
                 key={card.id}
                 onClick={card.action}
-                className="group relative p-5 rounded-2xl bg-[#0D0D14] border border-white/5 hover:border-[#8B2BFF]/50 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-[0_10px_30px_-5px_rgba(139,43,255,0.25)] hover:-translate-y-1 flex flex-col justify-between min-h-[140px]"
+                className="group relative p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-card-hover)] transition-all duration-300 cursor-pointer shadow-md hover:-translate-y-1 flex flex-col justify-between min-h-[140px]"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-[#8B2BFF]/15 border border-[#8B2BFF]/30 flex items-center justify-center text-[#8B2BFF] group-hover:scale-110 group-hover:bg-[#8B2BFF] group-hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(139,43,255,0.2)]">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] group-hover:scale-110 group-hover:bg-[var(--accent)] group-hover:text-[var(--primary-foreground)] transition-all duration-300">
                     <Icon size={20} />
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 group-hover:text-white group-hover:border-[#8B2BFF]/50 group-hover:bg-[#8B2BFF]/20 transition-all duration-300">
+                  <div className="w-8 h-8 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-muted)] group-hover:text-[var(--text-primary)] group-hover:border-[var(--border-hover)] transition-all duration-300">
                     <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-base font-bold text-white group-hover:text-[#A75BFF] transition-colors">
+                  <h3 className="text-base font-bold text-[var(--text-primary)] transition-colors">
                     {card.title}
                   </h3>
-                  <p className="text-xs text-zinc-400 mt-1 font-medium">
+                  <p className="text-xs text-[var(--text-secondary)] mt-1 font-medium">
                     {card.subtitle}
                   </p>
                 </div>
@@ -255,13 +255,13 @@ export function ChatArea({
           
           {/* LEFT 7-COL: Your AI Workspace */}
           <div className="lg:col-span-7 flex flex-col gap-4">
-            <div className="p-6 rounded-2xl bg-[#0B0B10] border border-white/5 shadow-md flex flex-col justify-between h-full">
+            <div className="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-md flex flex-col justify-between h-full">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <Sparkles size={16} className="text-[#8B2BFF]" />
-                  <h2 className="text-lg font-bold text-white tracking-tight">Your AI Workspace</h2>
+                  <Sparkles size={16} className="text-[var(--text-primary)]" />
+                  <h2 className="text-lg font-bold text-[var(--text-primary)] tracking-tight">Your AI Workspace</h2>
                 </div>
-                <p className="text-xs text-zinc-400 leading-relaxed mb-6">
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-6">
                   Select a workflow or quick action to jump straight into deep work. All tasks run with full context retention and document citations.
                 </p>
 
@@ -271,7 +271,7 @@ export function ChatArea({
                     <button
                       key={idx}
                       onClick={action.action}
-                      className="px-4 py-2 rounded-xl bg-[#12121A] hover:bg-[#1A1A26] border border-white/5 hover:border-[#8B2BFF]/40 text-xs font-semibold text-zinc-300 hover:text-white transition-all cursor-pointer shadow-xs hover:shadow-[0_0_15px_rgba(139,43,255,0.2)] active:scale-95 text-left"
+                      className="px-4 py-2 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-subtle)] hover:border-[var(--border-hover)] text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all cursor-pointer shadow-xs active:scale-95 text-left"
                     >
                       {action.label}
                     </button>
@@ -280,7 +280,7 @@ export function ChatArea({
               </div>
 
               {/* Workspace footer status */}
-              <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between text-[0.72rem] text-zinc-500">
+              <div className="mt-8 pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between text-[0.72rem] text-[var(--text-muted)]">
                 <span className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   RAG Document Engine Active
@@ -294,11 +294,11 @@ export function ChatArea({
           <div className="lg:col-span-5 flex flex-col gap-4">
             
             {/* Widget 1: System Status */}
-            <div className="p-4 rounded-2xl bg-[#0B0B10] border border-white/5 shadow-sm">
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/5">
+            <div className="p-4 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-sm">
+              <div className="flex items-center justify-between mb-3 pb-2 border-b border-[var(--border-subtle)]">
                 <div className="flex items-center gap-2">
-                  <Activity size={15} className="text-[#8B2BFF]" />
-                  <span className="text-xs font-bold text-white tracking-wide uppercase">System Status</span>
+                  <Activity size={15} className="text-[var(--text-primary)]" />
+                  <span className="text-xs font-bold text-[var(--text-primary)] tracking-wide uppercase">System Status</span>
                 </div>
                 <span className="text-[0.65rem] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                   Optimal
@@ -306,42 +306,42 @@ export function ChatArea({
               </div>
 
               <div className="grid grid-cols-2 gap-2.5 text-xs">
-                <div className="p-2.5 rounded-xl bg-[#12121A] border border-white/5">
-                  <div className="flex items-center gap-1 text-[0.68rem] text-zinc-400 font-medium">
-                    <Cpu size={12} className="text-[#8B2BFF]" />
+                <div className="p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                  <div className="flex items-center gap-1 text-[0.68rem] text-[var(--text-muted)] font-medium">
+                    <Cpu size={12} className="text-[var(--text-primary)]" />
                     <span>Intelligence</span>
                   </div>
-                  <div className="text-[0.76rem] font-bold text-white mt-1 truncate">
+                  <div className="text-[0.76rem] font-bold text-[var(--text-primary)] mt-1 truncate">
                     Autumn Neural Core
                   </div>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-[#12121A] border border-white/5">
-                  <div className="flex items-center gap-1 text-[0.68rem] text-zinc-400 font-medium">
-                    <Database size={12} className="text-[#8B2BFF]" />
+                <div className="p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                  <div className="flex items-center gap-1 text-[0.68rem] text-[var(--text-muted)] font-medium">
+                    <Database size={12} className="text-[var(--text-primary)]" />
                     <span>Memory</span>
                   </div>
-                  <div className="text-[0.76rem] font-bold text-white mt-1">
+                  <div className="text-[0.76rem] font-bold text-[var(--text-primary)] mt-1">
                     Active & Adaptive
                   </div>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-[#12121A] border border-white/5">
-                  <div className="flex items-center gap-1 text-[0.68rem] text-zinc-400 font-medium">
-                    <Wrench size={12} className="text-[#8B2BFF]" />
+                <div className="p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                  <div className="flex items-center gap-1 text-[0.68rem] text-[var(--text-muted)] font-medium">
+                    <Wrench size={12} className="text-[var(--text-primary)]" />
                     <span>Architecture</span>
                   </div>
-                  <div className="text-[0.76rem] font-bold text-white mt-1">
+                  <div className="text-[0.76rem] font-bold text-[var(--text-primary)] mt-1">
                     Multi-Agent OS
                   </div>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-[#12121A] border border-white/5">
-                  <div className="flex items-center gap-1 text-[0.68rem] text-emerald-400 font-medium">
-                    <Zap size={12} className="text-emerald-400" />
+                <div className="p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                  <div className="flex items-center gap-1 text-[0.68rem] text-emerald-500 font-medium">
+                    <Zap size={12} className="text-emerald-500" />
                     <span>Performance</span>
                   </div>
-                  <div className="text-[0.76rem] font-bold text-emerald-400 mt-1">
+                  <div className="text-[0.76rem] font-bold text-emerald-500 mt-1">
                     Real-Time
                   </div>
                 </div>
@@ -349,31 +349,31 @@ export function ChatArea({
             </div>
 
             {/* Widget 2: Today's Vibe */}
-            <div className="p-4 rounded-2xl bg-[#0B0B10] border border-white/5 shadow-sm">
+            <div className="p-4 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <div className="flex items-end gap-0.5 h-3.5">
-                    <span className="w-0.5 h-3 bg-[#8B2BFF] animate-pulse rounded-full" />
-                    <span className="w-0.5 h-4 bg-[#A75BFF] animate-pulse rounded-full delay-75" />
-                    <span className="w-0.5 h-2 bg-[#8B2BFF] animate-pulse rounded-full delay-150" />
-                    <span className="w-0.5 h-3.5 bg-[#A75BFF] animate-pulse rounded-full delay-100" />
+                    <span className="w-0.5 h-3 bg-[var(--text-primary)] animate-pulse rounded-full" />
+                    <span className="w-0.5 h-4 bg-[var(--text-secondary)] animate-pulse rounded-full delay-75" />
+                    <span className="w-0.5 h-2 bg-[var(--text-primary)] animate-pulse rounded-full delay-150" />
+                    <span className="w-0.5 h-3.5 bg-[var(--text-secondary)] animate-pulse rounded-full delay-100" />
                   </div>
-                  <span className="text-xs font-bold text-white tracking-wide uppercase">Today's Vibe</span>
+                  <span className="text-xs font-bold text-[var(--text-primary)] tracking-wide uppercase">Today's Vibe</span>
                 </div>
-                <span className="text-[0.68rem] font-medium text-purple-300">Deep Work</span>
+                <span className="text-[0.68rem] font-medium text-[var(--text-secondary)]">Deep Work</span>
               </div>
-              <p className="text-xs text-zinc-400 font-medium mt-1">
+              <p className="text-xs text-[var(--text-secondary)] font-medium mt-1">
                 Peak cognitive energy. Autumn is calibrated for high-speed technical problem solving.
               </p>
             </div>
 
             {/* Widget 3: Autumn Quote */}
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-[#0F0A1C] to-[#0A0A0F] border border-[#8B2BFF]/25 shadow-sm relative overflow-hidden">
-              <Quote size={32} className="absolute -bottom-2 -right-2 text-[#8B2BFF]/10 pointer-events-none" />
-              <div className="text-[0.82rem] font-bold text-white italic tracking-wide">
+            <div className="p-4 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-sm relative overflow-hidden">
+              <Quote size={32} className="absolute -bottom-2 -right-2 text-[var(--text-muted)] opacity-20 pointer-events-none" />
+              <div className="text-[0.82rem] font-bold text-[var(--text-primary)] italic tracking-wide">
                 "Dream bigger. Build better."
               </div>
-              <div className="text-[0.7rem] text-[#A75BFF] font-semibold mt-1.5 flex items-center gap-1">
+              <div className="text-[0.7rem] text-[var(--text-secondary)] font-semibold mt-1.5 flex items-center gap-1">
                 <span>— Autumn</span>
               </div>
             </div>
@@ -387,7 +387,7 @@ export function ChatArea({
   };
 
   return (
-    <div className="flex-1 w-full h-full relative min-h-0 bg-black">
+    <div className="flex-1 w-full h-full relative min-h-0 bg-[var(--bg-primary)]">
       <Virtuoso
         className="w-full h-full"
         data={messages}
@@ -409,7 +409,7 @@ export function ChatArea({
 
           return (
             <div className="flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 pb-8 overflow-x-hidden">
-              <Suspense fallback={<div className="w-full text-white whitespace-pre-wrap">{msg.content}</div>}>
+              <Suspense fallback={<div className="w-full text-[var(--text-primary)] whitespace-pre-wrap">{msg.content}</div>}>
                 <MessageBubble
                   message={msg}
                   botName={botName}
@@ -433,11 +433,11 @@ export function ChatArea({
           Footer: () => (
             <div className="flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 pb-[140px]">
               {isGenerating && (
-                <div className="flex w-full max-w-[960px] flex-row items-center gap-3 animate-fade-in p-3 rounded-xl bg-[#0D0D14]/80 border border-[#8B2BFF]/30 backdrop-blur-sm">
-                  <div className="w-6 h-6 rounded-full bg-[#8B2BFF]/20 border border-[#8B2BFF] flex items-center justify-center shrink-0 shadow-[0_0_10px_#8B2BFF]">
-                    <div className="w-2 h-2 rounded-full bg-[#8B2BFF] animate-ping" />
+                <div className="flex w-full max-w-[960px] flex-row items-center gap-3 animate-fade-in p-3 rounded-xl bg-[var(--bg-surface)]/90 border border-[var(--border-subtle)] backdrop-blur-sm shadow-md">
+                  <div className="w-6 h-6 rounded-full bg-[var(--bg-surface-hover)] border border-[var(--border-strong)] flex items-center justify-center shrink-0">
+                    <div className="w-2 h-2 rounded-full bg-[var(--accent)] animate-ping" />
                   </div>
-                  <div className="text-zinc-300 text-xs font-medium flex items-center gap-2">
+                  <div className="text-[var(--text-secondary)] text-xs font-medium flex items-center gap-2">
                     <span>Autumn is thinking and synthesizing response...</span>
                   </div>
                 </div>
@@ -452,7 +452,7 @@ export function ChatArea({
           aria-label="Jump to latest"
           title="Jump to latest"
           onClick={() => virtuosoRef.current?.scrollToIndex({ index: 'LAST', behavior: 'smooth' })}
-          className="absolute bottom-24 left-1/2 z-10 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full border border-[#8B2BFF]/40 bg-[#0A0A0F] text-zinc-300 shadow-[0_0_15px_rgba(139,43,255,0.3)] transition-all hover:bg-[#8B2BFF] hover:text-white"
+          className="absolute bottom-24 left-1/2 z-10 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--bg-surface)] text-[var(--text-secondary)] shadow-lg transition-all hover:bg-[var(--accent)] hover:text-[var(--primary-foreground)]"
         >
           <ArrowDown size={16} />
         </button>

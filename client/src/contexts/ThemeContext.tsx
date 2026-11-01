@@ -12,7 +12,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Default to dark mode for pure black and neon purple identity
+    // Default to dark mode for stealth black obsidian identity
     const saved = localStorage.getItem('theme');
     if (saved === 'dark' || saved === 'light') return saved;
     return 'dark';

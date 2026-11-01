@@ -117,7 +117,7 @@ export function ChatPage() {
   };
 
   return (
-    <div className="flex h-screen bg-black overflow-hidden w-full relative">
+    <div className="flex h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-hidden w-full relative transition-colors duration-200">
       
       {/* Hidden file input for global attachment triggers from cards/quick actions */}
       <input
@@ -135,7 +135,7 @@ export function ChatPage() {
       {/* Mobile Backdrop */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
@@ -162,16 +162,16 @@ export function ChatPage() {
       />
 
       {/* Main Content Viewport */}
-      <div className="flex-1 min-w-0 flex flex-col h-full relative bg-black overflow-hidden">
+      <div className="flex-1 min-w-0 flex flex-col h-full relative bg-[var(--bg-primary)] overflow-hidden transition-colors duration-200">
         
         {/* SECTION B: Top Navigation */}
-        <header className="min-h-[58px] px-4 md:px-6 py-2 border-b border-[#1F1A2C] flex items-center justify-between gap-4 shrink-0 bg-[#060608]/90 backdrop-blur-md z-20">
+        <header className="min-h-[58px] px-4 md:px-6 py-2 border-b border-[var(--border-subtle)] flex items-center justify-between gap-4 shrink-0 bg-[var(--bg-primary)]/90 backdrop-blur-md z-20 transition-colors">
           
           {/* Left top controls */}
           <div className="flex min-w-0 items-center gap-3">
             <button 
               onClick={() => setIsSidebarOpen(true)}
-              className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors border-none bg-transparent cursor-pointer"
+              className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition-colors border-none bg-transparent cursor-pointer"
               aria-label="Open navigation menu"
             >
               <Menu size={20} />
@@ -179,8 +179,8 @@ export function ChatPage() {
 
             {/* Autumn v2.0 & Status */}
             <div className="flex items-center gap-2.5">
-              <span className="text-[0.88rem] font-bold text-white tracking-tight flex items-center gap-1.5">
-                Autumn <span className="text-[0.68rem] text-[#8B2BFF] font-semibold bg-[#8B2BFF]/15 px-1.5 py-0.5 rounded-sm border border-[#8B2BFF]/30">v2.0</span>
+              <span className="text-[0.88rem] font-bold text-[var(--text-primary)] tracking-tight flex items-center gap-1.5">
+                Autumn <span className="text-[0.68rem] text-[var(--text-secondary)] font-semibold bg-[var(--bg-surface-hover)] px-1.5 py-0.5 rounded-sm border border-[var(--border-subtle)]">v2.0</span>
               </span>
 
               {/* Online indicator */}
@@ -192,15 +192,15 @@ export function ChatPage() {
 
             {/* Attached Documents in Header */}
             {currentConversationId && documents.length > 0 && (
-              <div className="hidden md:flex min-w-0 gap-1.5 items-center overflow-x-auto ml-2 pl-3 border-l border-white/10">
+              <div className="hidden md:flex min-w-0 gap-1.5 items-center overflow-x-auto ml-2 pl-3 border-l border-[var(--border-subtle)]">
                 {documents.map((doc) => (
                   <div 
                     key={doc.id} 
                     className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border text-[0.7rem] max-w-[160px]
-                      ${doc.status === 'FAILED' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-[#0D0D14] border-white/10 text-zinc-300'}
+                      ${doc.status === 'FAILED' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)]'}
                     `}
                   >
-                    <FileText size={12} className="text-[#8B2BFF] shrink-0" />
+                    <FileText size={12} className="text-[var(--text-primary)] shrink-0" />
                     <span className="truncate flex-1 font-medium" title={doc.filename}>{doc.filename}</span>
                     <button 
                       onClick={() => detachDocument(doc.id)}
@@ -224,10 +224,10 @@ export function ChatPage() {
           {/* Right top controls */}
           <div className="flex shrink-0 gap-1.5 items-center">
             {messages.length > 0 && (
-              <div className="flex items-center gap-1.5 mr-1 pr-2 border-r border-white/10">
+              <div className="flex items-center gap-1.5 mr-1 pr-2 border-r border-[var(--border-subtle)]">
                 <button 
                   onClick={() => handleExport('md')} 
-                  className="px-2 py-1 flex items-center gap-1 rounded-lg text-[0.7rem] font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition-colors border border-white/10 bg-[#0D0D14] cursor-pointer" 
+                  className="px-2 py-1 flex items-center gap-1 rounded-lg text-[0.7rem] font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition-colors border border-[var(--border-subtle)] bg-[var(--bg-surface)] cursor-pointer" 
                   title="Export conversation as Markdown"
                 >
                   <Download size={12} />
@@ -235,7 +235,7 @@ export function ChatPage() {
                 </button>
                 <button 
                   onClick={() => handleExport('json')} 
-                  className="px-2 py-1 flex items-center gap-1 rounded-lg text-[0.7rem] font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition-colors border border-white/10 bg-[#0D0D14] cursor-pointer" 
+                  className="px-2 py-1 flex items-center gap-1 rounded-lg text-[0.7rem] font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition-colors border border-[var(--border-subtle)] bg-[var(--bg-surface)] cursor-pointer" 
                   title="Export conversation as JSON"
                 >
                   <span>JSON</span>
@@ -246,7 +246,7 @@ export function ChatPage() {
             {/* Fullscreen control */}
             <button 
               onClick={toggleFullscreen} 
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors border-none bg-transparent cursor-pointer" 
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition-colors border-none bg-transparent cursor-pointer" 
               title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"} 
               aria-label="Toggle Fullscreen"
             >
@@ -257,7 +257,7 @@ export function ChatPage() {
             <button 
               id="theme-toggle-btn" 
               onClick={toggleTheme} 
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors border-none bg-transparent cursor-pointer" 
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition-colors border-none bg-transparent cursor-pointer" 
               title="Toggle theme" 
               aria-label="Toggle theme"
             >
@@ -267,7 +267,7 @@ export function ChatPage() {
             {/* Help dialog */}
             <button 
               onClick={() => setIsHelpOpen(true)} 
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors border-none bg-transparent cursor-pointer" 
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition-colors border-none bg-transparent cursor-pointer" 
               title="Autumn AI Help & Shortcuts" 
               aria-label="Open help"
             >
@@ -286,49 +286,49 @@ export function ChatPage() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="help-title"
-              className="w-full max-w-md rounded-2xl border border-[#8B2BFF]/30 bg-[#0A0A0F] p-6 text-white shadow-[0_20px_60px_rgba(0,0,0,0.85)]"
+              className="w-full max-w-md rounded-2xl border border-[var(--border-strong)] bg-[var(--bg-surface)] p-6 text-[var(--text-primary)] shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="flex items-start justify-between gap-4 pb-3 border-b border-white/5">
+              <div className="flex items-start justify-between gap-4 pb-3 border-b border-[var(--border-subtle)]">
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-[#8B2BFF]/20 text-[#8B2BFF]">
+                  <div className="p-1.5 rounded-lg bg-[var(--bg-surface-hover)] text-[var(--text-primary)] border border-[var(--border-subtle)]">
                     <HelpCircle size={18} />
                   </div>
-                  <h2 id="help-title" className="text-base font-bold text-white">Autumn AI Operating Guide</h2>
+                  <h2 id="help-title" className="text-base font-bold text-[var(--text-primary)]">Autumn AI Operating Guide</h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsHelpOpen(false)}
-                  className="text-zinc-400 hover:text-white p-1"
+                  className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1"
                   aria-label="Close help"
                 >
                   <X size={18} />
                 </button>
               </div>
 
-              <ul className="mt-4 space-y-3 text-xs text-zinc-300 list-none p-0">
-                <li className="flex items-start gap-2.5 p-2 rounded-xl bg-[#0D0D14] border border-white/5">
-                  <span className="font-bold text-[#8B2BFF] shrink-0">⏎ Enter</span>
-                  <span>Press <strong className="text-white">Enter</strong> to send your prompt. Press <strong className="text-white">Shift+Enter</strong> for a new line.</span>
+              <ul className="mt-4 space-y-3 text-xs text-[var(--text-secondary)] list-none p-0">
+                <li className="flex items-start gap-2.5 p-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                  <span className="font-bold text-[var(--text-primary)] shrink-0">⏎ Enter</span>
+                  <span>Press <strong className="text-[var(--text-primary)]">Enter</strong> to send your prompt. Press <strong className="text-[var(--text-primary)]">Shift+Enter</strong> for a new line.</span>
                 </li>
-                <li className="flex items-start gap-2.5 p-2 rounded-xl bg-[#0D0D14] border border-white/5">
-                  <span className="font-bold text-[#8B2BFF] shrink-0">📎 RAG</span>
+                <li className="flex items-start gap-2.5 p-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                  <span className="font-bold text-[var(--text-primary)] shrink-0">📎 RAG</span>
                   <span>Attach PDFs, CSVs, DOCX files via the paperclip button to query documents with exact citations.</span>
                 </li>
-                <li className="flex items-start gap-2.5 p-2 rounded-xl bg-[#0D0D14] border border-white/5">
-                  <span className="font-bold text-[#8B2BFF] shrink-0">🧠 Memory</span>
-                  <span>Open the <strong className="text-white">Memory</strong> tab in the sidebar to add persistent rules and train Autumn's personality.</span>
+                <li className="flex items-start gap-2.5 p-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                  <span className="font-bold text-[var(--text-primary)] shrink-0">🧠 Memory</span>
+                  <span>Open the <strong className="text-[var(--text-primary)]">Memory</strong> tab in the sidebar to add persistent rules and train Autumn's personality.</span>
                 </li>
-                <li className="flex items-start gap-2.5 p-2 rounded-xl bg-[#0D0D14] border border-white/5">
-                  <span className="font-bold text-[#8B2BFF] shrink-0">⚡ Speed</span>
+                <li className="flex items-start gap-2.5 p-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                  <span className="font-bold text-[var(--text-primary)] shrink-0">⚡ Speed</span>
                   <span>Instant real-time streaming inference with adaptive worker agent routing.</span>
                 </li>
               </ul>
 
-              <div className="flex justify-end pt-4 mt-2 border-t border-white/5">
+              <div className="flex justify-end pt-4 mt-2 border-t border-[var(--border-subtle)]">
                 <button
                   onClick={() => setIsHelpOpen(false)}
-                  className="px-4 py-1.5 rounded-lg bg-[#8B2BFF] hover:bg-[#9D4BFF] text-xs font-semibold text-white transition-colors"
+                  className="px-4 py-1.5 rounded-lg bg-[var(--accent)] text-[var(--primary-foreground)] hover:opacity-90 text-xs font-semibold transition-opacity"
                 >
                   Got it
                 </button>
@@ -355,7 +355,7 @@ export function ChatPage() {
         />
         
         {/* SECTION G: Chat Composer */}
-        <div className="bg-black flex flex-col shrink-0 pb-4 relative">
+        <div className="bg-[var(--bg-primary)] flex flex-col shrink-0 pb-4 relative transition-colors">
           <ChatInput 
             onSendMessage={(text, agent, webSearch) => sendMessage(text, agent || selectedAgent, webSearch ?? isWebSearch)} 
             disabled={isGenerating} 

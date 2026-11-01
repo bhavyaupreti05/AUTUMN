@@ -102,86 +102,84 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 relative overflow-hidden text-white">
-      {/* Ambient background glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] bg-[#8B2BFF] opacity-15 blur-[140px] pointer-events-none rounded-full" />
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-4 relative overflow-hidden text-[var(--text-primary)]">
+      {/* Ambient stealth background glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] bg-white opacity-[0.03] blur-[140px] pointer-events-none rounded-full" />
       
       <div className="w-full max-w-[420px] flex flex-col items-center text-center relative z-10 my-8">
         {/* Logo Badge */}
         <div className="relative mb-5 group">
-          <div className="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-[#8B2BFF] to-[#601AB8] opacity-50 blur-lg group-hover:opacity-80 transition-opacity" />
-          <div className="relative w-16 h-16 rounded-2xl bg-[#0D0D14] border border-[#8B2BFF]/50 shadow-[0_0_25px_rgba(139,43,255,0.3)] flex items-center justify-center p-2">
-            <div className="w-5 h-5 rounded-full bg-[#8B2BFF] shadow-[0_0_12px_#8B2BFF] animate-pulse" />
+          <div className="relative w-16 h-16 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-strong)] shadow-lg flex items-center justify-center p-2">
+            <div className="w-4 h-4 rounded-full bg-[var(--accent)] shadow-sm animate-pulse" />
           </div>
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">
-          Welcome to <span className="text-[#8B2BFF] drop-shadow-[0_0_20px_rgba(139,43,255,0.4)]">Autumn</span>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)] mb-2">
+          Welcome to <span className="text-[var(--text-primary)]">Autumn</span>
         </h1>
-        <p className="text-zinc-400 text-xs sm:text-sm mb-6">Personal AI Operating System</p>
+        <p className="text-[var(--text-secondary)] text-xs sm:text-sm mb-6">Personal AI Operating System</p>
         
         <div className="flex flex-wrap justify-center gap-2 mb-6">
-          <div className="bg-[#0D0D14] border border-white/5 py-1 px-3 rounded-full text-[0.72rem] font-medium text-zinc-300 flex items-center gap-1.5 shadow-xs">
-            <Lock size={12} className="text-[#8B2BFF]" />
+          <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] py-1 px-3 rounded-full text-[0.72rem] font-medium text-[var(--text-secondary)] flex items-center gap-1.5 shadow-xs">
+            <Lock size={12} className="text-[var(--text-primary)]" />
             <span>Secure Enterprise Access</span>
           </div>
-          <div className="bg-[#0D0D14] border border-white/5 py-1 px-3 rounded-full text-[0.72rem] font-medium text-zinc-300 flex items-center gap-1.5 shadow-xs">
-            <Shield size={12} className="text-[#8B2BFF]" />
+          <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] py-1 px-3 rounded-full text-[0.72rem] font-medium text-[var(--text-secondary)] flex items-center gap-1.5 shadow-xs">
+            <Shield size={12} className="text-[var(--text-primary)]" />
             <span>Cloud & Local Intelligence</span>
           </div>
         </div>
 
-        <div className="bg-[#0B0B10] p-6 sm:p-7 rounded-2xl border border-[#8B2BFF]/30 shadow-[0_20px_60px_rgba(0,0,0,0.85)] w-full text-left text-white">
+        <div className="bg-[var(--bg-surface)] p-6 sm:p-7 rounded-2xl border border-[var(--border-strong)] shadow-2xl w-full text-left text-[var(--text-primary)]">
           {error && (
             <div className="bg-red-500/10 text-red-400 p-3 rounded-xl mb-4 text-xs font-medium border border-red-500/25 text-center">
               {error}
             </div>
           )}
           {(success || locationSuccess) && (
-            <div className="bg-[#8B2BFF]/15 text-[#A75BFF] p-3 rounded-xl mb-4 text-xs font-medium border border-[#8B2BFF]/30 text-center">
+            <div className="bg-emerald-500/10 text-emerald-400 p-3 rounded-xl mb-4 text-xs font-medium border border-emerald-500/30 text-center">
               {success || locationSuccess}
             </div>
           )}
 
           <form onSubmit={handleAuth} className="space-y-3.5">
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1 px-0.5">Username / Email</label>
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1 px-0.5">Username / Email</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="name@example.com"
-                className="w-full bg-black text-white border border-white/10 rounded-xl py-2.5 px-3.5 text-[0.92rem] focus:outline-none focus:border-[#8B2BFF] focus:ring-1 focus:ring-[#8B2BFF] transition-all"
+                className="w-full bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-xl py-2.5 px-3.5 text-[0.92rem] focus:outline-none focus:border-[var(--text-primary)] transition-all"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1 px-0.5">Password</label>
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1 px-0.5">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full bg-black text-white border border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-[0.92rem] focus:outline-none focus:border-[#8B2BFF] focus:ring-1 focus:ring-[#8B2BFF] transition-all"
+                  className="w-full bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-xl py-2.5 pl-3.5 pr-10 text-[0.92rem] focus:outline-none focus:border-[var(--text-primary)] transition-all"
                   required
                 />
                 <button
                   type="button"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   onClick={() => setShowPassword((previous) => !previous)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
-            
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-[#8B2BFF] via-[#7B1FFF] to-[#581C87] hover:brightness-110 active:scale-[0.99] text-white font-semibold py-2.5 px-4 rounded-xl transition-all mt-4 flex justify-center items-center gap-2 disabled:opacity-50 shadow-[0_0_20px_rgba(139,43,255,0.35)] cursor-pointer border border-[#A75BFF]/30 text-[0.92rem]"
+              className="w-full bg-[var(--accent)] hover:opacity-90 active:scale-[0.99] text-[var(--primary-foreground)] font-semibold py-2.5 px-4 rounded-xl transition-all mt-4 flex justify-center items-center gap-2 disabled:opacity-50 shadow-md cursor-pointer border border-[var(--border-strong)] text-[0.92rem]"
             >
               {isLoading ? 'Processing...' : (isLogin ? 'Log In' : 'Create Account')}
             </button>

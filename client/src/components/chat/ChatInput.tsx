@@ -143,12 +143,12 @@ export function ChatInput({
   }, [input]);
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-5 bg-gradient-to-t from-black via-black/85 to-transparent flex flex-col items-center pointer-events-none z-30">
+    <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-5 bg-gradient-to-t from-[var(--bg-primary)] via-[var(--bg-primary)]/85 to-transparent flex flex-col items-center pointer-events-none z-30">
       
       {/* Level 2 Agent Selector & Live Web Search Bar */}
       <div className="w-full max-w-[880px] mb-2 flex items-center justify-between pointer-events-auto px-1 gap-2">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none flex-1">
-          <span className="text-[0.65rem] text-zinc-500 font-bold uppercase tracking-wider mr-1 hidden sm:inline">Worker Agent:</span>
+          <span className="text-[0.65rem] text-[var(--text-muted)] font-bold uppercase tracking-wider mr-1 hidden sm:inline">Worker Agent:</span>
           {[
             { id: 'auto', label: '⚡ Auto-Route', title: 'Autonomous multi-agent router' },
             { id: 'dev', label: '💻 DevArchitect', title: 'Principal Software Engineer' },
@@ -164,8 +164,8 @@ export function ChatInput({
               className={clsx(
                 "px-2.5 py-0.5 rounded-full text-[0.68rem] font-medium transition-all cursor-pointer border whitespace-nowrap",
                 selectedAgent === agent.id
-                  ? "bg-[#8B2BFF]/25 border-[#8B2BFF] text-white shadow-[0_0_12px_rgba(139,43,255,0.4)]"
-                  : "bg-[#09090D]/90 border-white/10 text-zinc-400 hover:text-white hover:border-[#8B2BFF]/40"
+                  ? "bg-[var(--accent)] border-[var(--accent)] text-[var(--primary-foreground)] shadow-sm"
+                  : "bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]"
               )}
             >
               {agent.label}
@@ -182,16 +182,16 @@ export function ChatInput({
             "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.68rem] font-medium transition-all cursor-pointer border whitespace-nowrap shrink-0",
             isWebSearch
               ? "bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.35)]"
-              : "bg-[#09090D]/90 border-white/10 text-zinc-400 hover:text-white hover:border-emerald-500/40"
+              : "bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-emerald-500/40"
           )}
         >
-          <Globe size={11} className={isWebSearch ? "text-emerald-400" : "text-zinc-400"} />
+          <Globe size={11} className={isWebSearch ? "text-emerald-400" : "text-[var(--text-muted)]"} />
           <span>{isWebSearch ? "Live Web: ON" : "Live Web"}</span>
         </button>
       </div>
 
       {/* SECTION G: Chat Composer Container */}
-      <div className="w-full max-w-[880px] flex items-end gap-2.5 bg-[#09090D] border border-[#8B2BFF]/35 rounded-[24px] py-2.5 px-4 shadow-[0_0_25px_rgba(139,43,255,0.18)] focus-within:border-[#8B2BFF] focus-within:shadow-[0_0_35px_rgba(139,43,255,0.32)] transition-all pointer-events-auto">
+      <div className="w-full max-w-[880px] flex items-end gap-2.5 bg-[var(--bg-surface)] border border-[var(--border-strong)] rounded-[24px] py-2.5 px-4 shadow-lg focus-within:border-[var(--text-primary)] transition-all pointer-events-auto">
         
         {/* Hidden file input */}
         <input
@@ -208,12 +208,12 @@ export function ChatInput({
           disabled={isUploading || disabled}
           title="Attach Document (PDF, DOCX, CSV, Excel)"
           aria-label="Attach Document"
-          className="text-zinc-400 hover:text-white hover:bg-white/5 disabled:opacity-40 transition-colors shrink-0 mb-1 rounded-full w-9 h-9 flex items-center justify-center border-none bg-transparent cursor-pointer"
+          className="text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] disabled:opacity-40 transition-colors shrink-0 mb-1 rounded-full w-9 h-9 flex items-center justify-center border-none bg-transparent cursor-pointer"
         >
           {isUploading ? (
-            <Loader2 size={18} className="animate-spin text-[#8B2BFF]" />
+            <Loader2 size={18} className="animate-spin text-[var(--text-primary)]" />
           ) : (
-            <Paperclip size={18} className="rotate-45 hover:text-[#8B2BFF] transition-colors" />
+            <Paperclip size={18} className="rotate-45 hover:text-[var(--text-primary)] transition-colors" />
           )}
         </button>
 
@@ -225,11 +225,11 @@ export function ChatInput({
           onKeyDown={handleKeyDown}
           disabled={disabled || isUploading}
           placeholder={(disabled || isUploading || isGenerating) ? `${botName} is thinking...` : `Ask ${botName} anything...`}
-          className="flex-1 max-h-[160px] bg-transparent text-white placeholder:text-zinc-500 py-2 px-1 outline-none resize-none overflow-y-auto leading-relaxed border-none text-[0.94rem] font-normal"
+          className="flex-1 max-h-[160px] bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)] py-2 px-1 outline-none resize-none overflow-y-auto leading-relaxed border-none text-[0.94rem] font-normal"
           rows={1}
         />
 
-        {/* Action Buttons: Stop / Voice / Purple Circular Send */}
+        {/* Action Buttons: Stop / Voice / Monochrome Circular Send */}
         {isGenerating ? (
           <button
             onClick={onStop}
@@ -245,18 +245,18 @@ export function ChatInput({
             <button
               onClick={toggleRecording}
               disabled={disabled || isUploading}
-              className={`w-9 h-9 rounded-full ${isRecording ? 'text-white bg-red-600 animate-pulse' : 'text-zinc-400 hover:text-white hover:bg-white/5'} transition-all flex items-center justify-center disabled:opacity-40 border-none bg-transparent cursor-pointer`}
+              className={`w-9 h-9 rounded-full ${isRecording ? 'text-white bg-red-600 animate-pulse' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'} transition-all flex items-center justify-center disabled:opacity-40 border-none bg-transparent cursor-pointer`}
               title={isRecording ? "Stop recording" : "Voice Input"}
               aria-label="Voice Input"
             >
-              <Mic size={18} className={isRecording ? "text-white" : "hover:text-[#8B2BFF]"} />
+              <Mic size={18} className={isRecording ? "text-white" : "hover:text-[var(--text-primary)]"} />
             </button>
 
-            {/* Purple Circular Send Button */}
+            {/* High-contrast Monochrome Circular Send Button */}
             <button
               onClick={handleSend}
               disabled={!input.trim() || disabled}
-              className="w-10 h-10 text-white bg-gradient-to-tr from-[#8B2BFF] via-[#7B1FFF] to-[#581C87] hover:brightness-110 active:scale-95 rounded-full disabled:opacity-35 disabled:cursor-not-allowed transition-all flex items-center justify-center border border-[#A75BFF]/30 cursor-pointer shadow-[0_0_18px_rgba(139,43,255,0.45)]"
+              className="w-10 h-10 text-[var(--primary-foreground)] bg-[var(--accent)] hover:opacity-90 active:scale-95 rounded-full disabled:opacity-35 disabled:cursor-not-allowed transition-all flex items-center justify-center border border-[var(--border-strong)] cursor-pointer shadow-md"
               title="Send message"
               aria-label="Send message"
             >
@@ -268,8 +268,8 @@ export function ChatInput({
       
       {/* Subtle Bottom Attribution */}
       <div className="w-full max-w-[880px] mt-2 pointer-events-auto">
-        <p className="text-center text-[0.68rem] text-zinc-500 tracking-wide font-medium">
-          <span className="text-[#8B2BFF] font-semibold">Autumn AI</span> • Enterprise Grade Local & Cloud Intelligence • Shift+Enter for new line
+        <p className="text-center text-[0.68rem] text-[var(--text-muted)] tracking-wide font-medium">
+          <span className="text-[var(--text-primary)] font-semibold">Autumn AI</span> • Enterprise Grade Local & Cloud Intelligence • Shift+Enter for new line
         </p>
       </div>
     </div>

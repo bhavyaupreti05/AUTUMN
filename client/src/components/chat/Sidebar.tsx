@@ -157,12 +157,12 @@ export function Sidebar({
   return (
     <>
       <aside className={clsx(
-        "w-[285px] bg-[#060608] border-r border-[#1F1A2C] flex flex-col h-full shrink-0 transition-transform duration-300 z-40 select-none",
+        "w-[285px] bg-[var(--bg-sidebar)] border-r border-[var(--border-subtle)] text-[var(--text-primary)] flex flex-col h-full shrink-0 transition-all duration-200 z-40 select-none",
         "fixed inset-y-0 left-0 md:relative md:translate-x-0 shadow-2xl",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Top Branding */}
-        <div className="p-4 pt-5 pb-3 flex flex-col gap-3 border-b border-[#14121E]">
+        <div className="p-4 pt-5 pb-3 flex flex-col gap-3 border-b border-[var(--border-subtle)]">
           <div className="flex items-center justify-between">
             <div 
               onClick={() => {
@@ -171,17 +171,17 @@ export function Sidebar({
               }}
               className="flex items-center gap-2.5 cursor-pointer group"
             >
-              <div className="relative w-8 h-8 rounded-lg bg-black border border-[#8B2BFF]/40 p-1 flex items-center justify-center shadow-[0_0_15px_rgba(139,43,255,0.35)] group-hover:border-[#8B2BFF] group-hover:shadow-[0_0_20px_rgba(139,43,255,0.6)] transition-all">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#8B2BFF] shadow-[0_0_10px_#8B2BFF] animate-pulse" />
+              <div className="relative w-8 h-8 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-strong)] p-1 flex items-center justify-center shadow-sm group-hover:border-[var(--border-hover)] transition-all">
+                <div className="w-2.5 h-2.5 rounded-full bg-[var(--accent)] shadow-xs animate-pulse" />
               </div>
               <div className="flex flex-col">
-                <span className="text-[1.05rem] font-bold tracking-tight text-white flex items-center gap-1.5">
+                <span className="text-[1.05rem] font-bold tracking-tight text-[var(--text-primary)] flex items-center gap-1.5">
                   Autumn
-                  <span className="text-[0.62rem] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-sm bg-[#8B2BFF]/20 text-[#A75BFF] border border-[#8B2BFF]/30">
+                  <span className="text-[0.62rem] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-sm bg-[var(--bg-surface-hover)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
                     AI
                   </span>
                 </span>
-                <span className="text-[0.68rem] text-[#71717A] tracking-wider font-medium">
+                <span className="text-[0.68rem] text-[var(--text-muted)] tracking-wider font-medium">
                   Think. Build. Execute.
                 </span>
               </div>
@@ -190,7 +190,7 @@ export function Sidebar({
             {onClose && (
               <button
                 onClick={onClose}
-                className="md:hidden p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-900 border-none bg-transparent cursor-pointer"
+                className="md:hidden p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-lg hover:bg-[var(--bg-surface-hover)] border-none bg-transparent cursor-pointer"
                 aria-label="Close sidebar"
               >
                 <X size={18} />
@@ -208,11 +208,11 @@ export function Sidebar({
               className={clsx(
                 "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.84rem] font-medium transition-all text-left cursor-pointer border border-transparent",
                 activeTab === 'home' && !currentConversationId
-                  ? "bg-[#8B2BFF]/15 text-white border-[#8B2BFF]/30 shadow-[0_0_15px_rgba(139,43,255,0.15)]"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-[#0D0D14]"
+                  ? "bg-[var(--bg-surface-hover)] text-[var(--text-primary)] border-[var(--border-strong)] shadow-xs font-semibold"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
               )}
             >
-              <Home size={16} className={activeTab === 'home' && !currentConversationId ? "text-[#8B2BFF]" : "text-zinc-400"} />
+              <Home size={16} className={activeTab === 'home' && !currentConversationId ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"} />
               <span>Home</span>
             </button>
 
@@ -224,13 +224,13 @@ export function Sidebar({
               className={clsx(
                 "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.84rem] font-medium transition-all text-left cursor-pointer border border-transparent",
                 activeTab === 'explore'
-                  ? "bg-[#8B2BFF]/15 text-white border-[#8B2BFF]/30"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-[#0D0D14]"
+                  ? "bg-[var(--bg-surface-hover)] text-[var(--text-primary)] border-[var(--border-strong)]"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
               )}
             >
-              <Compass size={16} className={activeTab === 'explore' ? "text-[#8B2BFF]" : "text-zinc-400"} />
+              <Compass size={16} className={activeTab === 'explore' ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"} />
               <span>Explore</span>
-              <span className="ml-auto text-[0.62rem] uppercase font-semibold text-zinc-500 bg-zinc-900/80 px-1.5 py-0.5 rounded">Hub</span>
+              <span className="ml-auto text-[0.62rem] uppercase font-semibold text-[var(--text-muted)] bg-[var(--bg-surface)] px-1.5 py-0.5 rounded border border-[var(--border-subtle)]">Hub</span>
             </button>
 
             <button
@@ -241,14 +241,14 @@ export function Sidebar({
               className={clsx(
                 "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.84rem] font-medium transition-all text-left cursor-pointer border border-transparent",
                 activeTab === 'projects'
-                  ? "bg-[#8B2BFF]/15 text-white border-[#8B2BFF]/30"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-[#0D0D14]"
+                  ? "bg-[var(--bg-surface-hover)] text-[var(--text-primary)] border-[var(--border-strong)]"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
               )}
             >
-              <Layers size={16} className={activeTab === 'projects' ? "text-[#8B2BFF]" : "text-zinc-400"} />
+              <Layers size={16} className={activeTab === 'projects' ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"} />
               <span>Projects</span>
               {documents.length > 0 && (
-                <span className="ml-auto text-[0.65rem] font-bold text-[#8B2BFF] bg-[#8B2BFF]/20 px-1.5 py-0.2 rounded-full border border-[#8B2BFF]/30">
+                <span className="ml-auto text-[0.65rem] font-bold text-[var(--text-primary)] bg-[var(--bg-surface-hover)] px-1.5 py-0.2 rounded-full border border-[var(--border-subtle)]">
                   {documents.length}
                 </span>
               )}
@@ -262,13 +262,13 @@ export function Sidebar({
               className={clsx(
                 "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.84rem] font-medium transition-all text-left cursor-pointer border border-transparent",
                 activeTab === 'memory'
-                  ? "bg-[#8B2BFF]/15 text-white border-[#8B2BFF]/30"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-[#0D0D14]"
+                  ? "bg-[var(--bg-surface-hover)] text-[var(--text-primary)] border-[var(--border-strong)]"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
               )}
             >
-              <Brain size={16} className={activeTab === 'memory' ? "text-[#8B2BFF]" : "text-zinc-400"} />
+              <Brain size={16} className={activeTab === 'memory' ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"} />
               <span>Memory</span>
-              <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#8B2BFF] shadow-[0_0_8px_#8B2BFF]" />
+              <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
             </button>
 
             <button
@@ -279,11 +279,11 @@ export function Sidebar({
               className={clsx(
                 "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.84rem] font-medium transition-all text-left cursor-pointer border border-transparent",
                 activeTab === 'settings'
-                  ? "bg-[#8B2BFF]/15 text-white border-[#8B2BFF]/30"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-[#0D0D14]"
+                  ? "bg-[var(--bg-surface-hover)] text-[var(--text-primary)] border-[var(--border-strong)]"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
               )}
             >
-              <Settings size={16} className={activeTab === 'settings' ? "text-[#8B2BFF]" : "text-zinc-400"} />
+              <Settings size={16} className={activeTab === 'settings' ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"} />
               <span>Settings</span>
             </button>
           </nav>
@@ -296,9 +296,9 @@ export function Sidebar({
               setActiveTab('home');
               onNewConversation();
             }}
-            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#8B2BFF] to-[#601AB8] hover:from-[#9D4BFF] hover:to-[#7423D6] text-white text-[0.86rem] font-semibold flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(139,43,255,0.3)] hover:shadow-[0_0_25px_rgba(139,43,255,0.5)] transition-all cursor-pointer border border-[#A75BFF]/30 active:scale-[0.98]"
+            className="w-full py-2.5 px-4 rounded-xl bg-[var(--accent)] text-[var(--primary-foreground)] hover:opacity-90 font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer border border-[var(--border-strong)] active:scale-[0.98] text-[0.86rem]"
           >
-            <Plus size={16} className="text-white" />
+            <Plus size={16} />
             <span>New Chat</span>
           </button>
         </div>
@@ -306,37 +306,37 @@ export function Sidebar({
         {/* Search Chats Input */}
         <div className="px-3.5 pb-2">
           <div className="relative flex items-center w-full">
-            <Search size={14} className="absolute left-3 text-zinc-500 pointer-events-none" />
+            <Search size={14} className="absolute left-3 text-[var(--text-muted)] pointer-events-none" />
             <input 
               type="text" 
               placeholder="Search chats..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#0D0D14] border border-white/5 text-zinc-200 placeholder:text-zinc-500 rounded-lg py-1.5 pl-8 pr-3 text-[0.8rem] focus:outline-none focus:border-[#8B2BFF] focus:ring-1 focus:ring-[#8B2BFF] transition-all"
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] rounded-lg py-1.5 pl-8 pr-3 text-[0.8rem] focus:outline-none focus:border-[var(--border-strong)] focus:ring-1 focus:ring-[var(--border-strong)] transition-all"
             />
           </div>
         </div>
 
         {/* Recent Chats Section */}
-        <div className="text-[0.68rem] uppercase tracking-wider text-zinc-500 px-4 pt-2 pb-1 font-semibold flex items-center justify-between">
+        <div className="text-[0.68rem] uppercase tracking-wider text-[var(--text-muted)] px-4 pt-2 pb-1 font-semibold flex items-center justify-between">
           <span>Recent Chats</span>
           {sortedConversations.length > 0 && (
-            <span className="text-[0.68rem] text-zinc-600 font-normal">{sortedConversations.length}</span>
+            <span className="text-[0.68rem] text-[var(--text-muted)] font-normal">{sortedConversations.length}</span>
           )}
         </div>
         
         {/* Conversations Scroll Container */}
         <div className="flex-1 overflow-y-auto px-2.5 flex flex-col gap-1 pb-4">
           {isLoading ? (
-            <div className="text-zinc-500 text-xs p-4 text-center animate-pulse">Loading conversations...</div>
+            <div className="text-[var(--text-muted)] text-xs p-4 text-center animate-pulse">Loading conversations...</div>
           ) : isError ? (
             <div className="text-red-400 text-xs p-3 text-center flex flex-col items-center gap-1">
               <span>Failed to load conversations</span>
-              <button onClick={() => refetch()} className="text-zinc-400 hover:text-white underline cursor-pointer border-none bg-transparent p-0 text-xs">Retry</button>
+              <button onClick={() => refetch()} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] underline cursor-pointer border-none bg-transparent p-0 text-xs">Retry</button>
             </div>
           ) : sortedConversations.length === 0 ? (
-            <div className="text-zinc-500 text-xs p-6 text-center leading-relaxed">
-              No conversations yet.<br/>Start with <span className="text-[#8B2BFF] font-medium">New Chat</span>.
+            <div className="text-[var(--text-muted)] text-xs p-6 text-center leading-relaxed">
+              No conversations yet.<br/>Start with <span className="text-[var(--text-primary)] font-medium">New Chat</span>.
             </div>
           ) : (
             sortedConversations.map((conv) => {
@@ -351,49 +351,49 @@ export function Sidebar({
                   className={clsx(
                     "group flex items-center py-2 px-3 rounded-lg cursor-pointer transition-all relative border gap-2.5",
                     isActive
-                      ? "bg-[#8B2BFF]/15 border-[#8B2BFF]/40 text-white shadow-[0_0_15px_rgba(139,43,255,0.12)]"
-                      : "border-transparent text-zinc-400 hover:bg-[#0D0D14] hover:text-zinc-200",
-                    conv.is_pinned && !isActive && "bg-[#8B2BFF]/5 border-[#8B2BFF]/15"
+                      ? "bg-[var(--bg-surface-hover)] border-[var(--border-strong)] text-[var(--text-primary)] shadow-xs font-medium"
+                      : "border-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)]",
+                    conv.is_pinned && !isActive && "bg-[var(--bg-surface)] border-[var(--border-subtle)]"
                   )}
                 >
                   <div className={clsx(
                     "w-4 h-4 flex items-center justify-center shrink-0 transition-colors",
-                    isActive ? "text-[#8B2BFF]" : "text-zinc-500 group-hover:text-zinc-300"
+                    isActive ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]"
                   )}>
-                    {conv.is_pinned ? <Pin size={13} className="text-[#8B2BFF]" /> : <MessageSquare size={13} />}
+                    {conv.is_pinned ? <Pin size={13} className="text-[var(--text-primary)]" /> : <MessageSquare size={13} />}
                   </div>
                   
                   <div className="flex-1 min-w-0 flex flex-col">
                     <div className="text-[0.82rem] font-medium truncate" title={conv.title}>
                       {conv.title}
                     </div>
-                    <div className={clsx("text-[0.68rem]", isActive ? "text-[#A75BFF]" : "text-zinc-500")}>
+                    <div className={clsx("text-[0.68rem]", isActive ? "text-[var(--text-secondary)]" : "text-[var(--text-muted)]")}>
                       {new Date(conv.updated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </div>
                   </div>
 
                   {isActive && (
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#8B2BFF] shrink-0 shadow-[0_0_8px_#8B2BFF]" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0 shadow-xs" />
                   )}
 
-                  <div className="hidden group-hover:flex items-center gap-0.5 absolute right-2 bg-gradient-to-l from-[#0D0D14] via-[#0D0D14] pl-2">
+                  <div className="hidden group-hover:flex items-center gap-0.5 absolute right-2 bg-[var(--bg-surface)] pl-2 rounded-r-lg">
                     <button 
                       onClick={(e) => handleTogglePin(e, conv.id, conv.is_pinned)} 
-                      className="p-1 text-zinc-400 hover:text-[#8B2BFF] rounded transition-colors" 
+                      className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded transition-colors" 
                       title={conv.is_pinned ? "Unpin" : "Pin"}
                     >
                       {conv.is_pinned ? <PinOff size={13} /> : <Pin size={13} />}
                     </button>
                     <button 
                       onClick={(e) => handleRename(e, conv.id, conv.title)} 
-                      className="p-1 text-zinc-400 hover:text-[#8B2BFF] rounded transition-colors" 
+                      className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded transition-colors" 
                       title="Rename"
                     >
                       <Edit2 size={13} />
                     </button>
                     <button 
                       onClick={(e) => handleDelete(e, conv.id)} 
-                      className="p-1 text-zinc-400 hover:text-red-400 rounded transition-colors" 
+                      className="p-1 text-[var(--text-muted)] hover:text-red-400 rounded transition-colors" 
                       title="Delete"
                     >
                       <Trash2 size={13} />
@@ -406,52 +406,52 @@ export function Sidebar({
         </div>
 
         {/* Bottom Profile Section */}
-        <div className="p-3 border-t border-[#14121E] bg-[#040406]">
+        <div className="p-3 border-t border-[var(--border-subtle)] bg-[var(--bg-sidebar)]">
           <button
             type="button"
             onClick={() => setIsProfileOpen(true)}
-            className="flex w-full items-center gap-2.5 rounded-xl border border-white/5 bg-[#0A0A0F] p-2.5 text-left transition-all hover:bg-[#12121A] hover:border-[#8B2BFF]/40 cursor-pointer shadow-sm group"
+            className="flex w-full items-center gap-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-2.5 text-left transition-all hover:bg-[var(--bg-surface-hover)] hover:border-[var(--border-strong)] cursor-pointer shadow-xs group"
           >
-            {/* User Avatar with Purple Ring */}
-            <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-[#8B2BFF] to-[#4C1D95] text-xs font-bold text-white shadow-[0_0_10px_rgba(139,43,255,0.4)] shrink-0 border border-[#8B2BFF]/50">
+            {/* User Avatar */}
+            <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-surface-hover)] text-xs font-bold text-[var(--text-primary)] border border-[var(--border-strong)] shrink-0">
               {displayName.charAt(0)}
-              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-black" />
+              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-[var(--bg-primary)]" />
             </div>
 
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[0.82rem] font-semibold text-white group-hover:text-[#A75BFF] transition-colors">
+              <div className="truncate text-[0.82rem] font-semibold text-[var(--text-primary)] transition-colors">
                 {displayName}
               </div>
-              <div className="flex items-center gap-1.5 text-[0.68rem] text-zinc-400">
-                <span className="text-[#8B2BFF] font-medium">{isAdmin ? 'Admin' : 'Personal AI'}</span>
+              <div className="flex items-center gap-1.5 text-[0.68rem] text-[var(--text-muted)]">
+                <span className="text-[var(--text-secondary)] font-medium">{isAdmin ? 'Admin' : 'Personal AI'}</span>
                 <span className="opacity-40">•</span>
                 <span>Online</span>
               </div>
             </div>
 
-            <Settings size={14} className="text-zinc-500 group-hover:text-[#8B2BFF] shrink-0 transition-colors" />
+            <Settings size={14} className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] shrink-0 transition-colors" />
           </button>
         </div>
       </aside>
 
       {/* EXPLORE MODAL */}
       {isExploreOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setIsExploreOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setIsExploreOpen(false)}>
           <div 
-            className="w-full max-w-2xl rounded-2xl border border-[#8B2BFF]/30 bg-[#0A0A0F] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)] text-white"
+            className="w-full max-w-2xl rounded-2xl border border-[var(--border-strong)] bg-[var(--bg-surface)] p-6 shadow-2xl text-[var(--text-primary)]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-4 border-b border-white/5">
+            <div className="flex items-center justify-between pb-4 border-b border-[var(--border-subtle)]">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-[#8B2BFF]/20 text-[#8B2BFF] border border-[#8B2BFF]/30">
+                <div className="p-2 rounded-xl bg-[var(--bg-surface-hover)] text-[var(--text-primary)] border border-[var(--border-subtle)]">
                   <Compass size={20} />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold">Explore Autumn AI</h3>
-                  <p className="text-xs text-zinc-400">Discover capabilities, workflows, and instant prompt templates</p>
+                  <p className="text-xs text-[var(--text-secondary)]">Discover capabilities, workflows, and instant prompt templates</p>
                 </div>
               </div>
-              <button onClick={() => setIsExploreOpen(false)} className="text-zinc-400 hover:text-white p-1">
+              <button onClick={() => setIsExploreOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1">
                 <X size={18} />
               </button>
             </div>
@@ -469,19 +469,19 @@ export function Sidebar({
                     setIsExploreOpen(false);
                     onQuickPrompt?.(item.prompt);
                   }}
-                  className="p-4 rounded-xl bg-[#0F0F17] border border-white/5 hover:border-[#8B2BFF]/50 hover:bg-[#141420] transition-all cursor-pointer group"
+                  className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-card-hover)] transition-all cursor-pointer group"
                 >
-                  <h4 className="text-[0.88rem] font-semibold text-white group-hover:text-[#A75BFF] transition-colors">{item.title}</h4>
-                  <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{item.desc}</p>
-                  <span className="inline-block mt-3 text-[0.72rem] text-[#8B2BFF] font-medium group-hover:underline">Use prompt →</span>
+                  <h4 className="text-[0.88rem] font-semibold text-[var(--text-primary)] transition-colors">{item.title}</h4>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">{item.desc}</p>
+                  <span className="inline-block mt-3 text-[0.72rem] text-[var(--text-secondary)] font-medium group-hover:text-[var(--text-primary)] group-hover:underline">Use prompt →</span>
                 </div>
               ))}
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-white/5">
+            <div className="flex justify-end pt-2 border-t border-[var(--border-subtle)]">
               <button 
                 onClick={() => setIsExploreOpen(false)}
-                className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-white transition-colors"
+                className="px-4 py-2 rounded-lg bg-[var(--bg-surface-hover)] hover:bg-[var(--border-strong)] text-xs font-semibold text-[var(--text-primary)] transition-colors"
               >
                 Close
               </button>
@@ -492,29 +492,29 @@ export function Sidebar({
 
       {/* PROJECTS & KNOWLEDGE MODAL */}
       {isProjectsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setIsProjectsOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setIsProjectsOpen(false)}>
           <div 
-            className="w-full max-w-xl rounded-2xl border border-[#8B2BFF]/30 bg-[#0A0A0F] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)] text-white"
+            className="w-full max-w-xl rounded-2xl border border-[var(--border-strong)] bg-[var(--bg-surface)] p-6 shadow-2xl text-[var(--text-primary)]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-4 border-b border-white/5">
+            <div className="flex items-center justify-between pb-4 border-b border-[var(--border-subtle)]">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-[#8B2BFF]/20 text-[#8B2BFF] border border-[#8B2BFF]/30">
+                <div className="p-2 rounded-xl bg-[var(--bg-surface-hover)] text-[var(--text-primary)] border border-[var(--border-subtle)]">
                   <Layers size={20} />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold">Knowledge & Documents</h3>
-                  <p className="text-xs text-zinc-400">Manage attached files, RAG embeddings, and active context</p>
+                  <p className="text-xs text-[var(--text-secondary)]">Manage attached files, RAG embeddings, and active context</p>
                 </div>
               </div>
-              <button onClick={() => setIsProjectsOpen(false)} className="text-zinc-400 hover:text-white p-1">
+              <button onClick={() => setIsProjectsOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1">
                 <X size={18} />
               </button>
             </div>
 
             <div className="my-5">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
                   Active Files ({documents.length})
                 </span>
                 <button
@@ -522,7 +522,7 @@ export function Sidebar({
                     setIsProjectsOpen(false);
                     onOpenUpload?.();
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#8B2BFF] hover:bg-[#9D4BFF] text-xs font-semibold text-white transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--accent)] hover:opacity-90 text-xs font-semibold text-[var(--primary-foreground)] transition-colors"
                 >
                   <Upload size={13} />
                   <span>Attach File</span>
@@ -530,21 +530,21 @@ export function Sidebar({
               </div>
 
               {documents.length === 0 ? (
-                <div className="p-8 text-center rounded-xl bg-[#0D0D14] border border-white/5">
-                  <FileText size={28} className="mx-auto text-zinc-600 mb-2" />
-                  <p className="text-sm text-zinc-400">No documents attached to current conversation.</p>
-                  <p className="text-xs text-zinc-500 mt-1">Upload a PDF, DOCX, CSV or Excel file to enable RAG citations.</p>
+                <div className="p-8 text-center rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                  <FileText size={28} className="mx-auto text-[var(--text-muted)] mb-2" />
+                  <p className="text-sm text-[var(--text-secondary)]">No documents attached to current conversation.</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">Upload a PDF, DOCX, CSV or Excel file to enable RAG citations.</p>
                 </div>
               ) : (
                 <div className="flex flex-col gap-2 max-h-[260px] overflow-y-auto">
                   {documents.map((doc) => (
                     <div 
                       key={doc.id}
-                      className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D14] border border-white/5 hover:border-[#8B2BFF]/30 transition-colors"
+                      className="flex items-center justify-between p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-hover)] transition-colors"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <FileText size={16} className="text-[#8B2BFF] shrink-0" />
-                        <span className="text-xs font-medium text-zinc-200 truncate" title={doc.filename}>{doc.filename}</span>
+                        <FileText size={16} className="text-[var(--text-primary)] shrink-0" />
+                        <span className="text-xs font-medium text-[var(--text-primary)] truncate" title={doc.filename}>{doc.filename}</span>
                         <span className="text-[0.65rem] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                           {doc.status}
                         </span>
@@ -552,7 +552,7 @@ export function Sidebar({
                       {onDetachDoc && (
                         <button
                           onClick={() => onDetachDoc(doc.id)}
-                          className="text-zinc-500 hover:text-red-400 p-1 text-xs transition-colors"
+                          className="text-[var(--text-muted)] hover:text-red-400 p-1 text-xs transition-colors"
                           title="Remove file"
                         >
                           <Trash2 size={14} />
@@ -564,10 +564,10 @@ export function Sidebar({
               )}
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-white/5">
+            <div className="flex justify-end pt-2 border-t border-[var(--border-subtle)]">
               <button 
                 onClick={() => setIsProjectsOpen(false)}
-                className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-white transition-colors"
+                className="px-4 py-2 rounded-lg bg-[var(--bg-surface-hover)] hover:bg-[var(--border-strong)] text-xs font-semibold text-[var(--text-primary)] transition-colors"
               >
                 Close
               </button>
@@ -578,22 +578,22 @@ export function Sidebar({
 
       {/* AI MEMORY & RULES MODAL */}
       {isMemoryOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setIsMemoryOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setIsMemoryOpen(false)}>
           <div 
-            className="w-full max-w-lg rounded-2xl border border-[#8B2BFF]/30 bg-[#0A0A0F] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)] text-white"
+            className="w-full max-w-lg rounded-2xl border border-[var(--border-strong)] bg-[var(--bg-surface)] p-6 shadow-2xl text-[var(--text-primary)]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-4 border-b border-white/5">
+            <div className="flex items-center justify-between pb-4 border-b border-[var(--border-subtle)]">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-[#8B2BFF]/20 text-[#8B2BFF] border border-[#8B2BFF]/30">
+                <div className="p-2 rounded-xl bg-[var(--bg-surface-hover)] text-[var(--text-primary)] border border-[var(--border-subtle)]">
                   <Brain size={20} />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold">Autonomous AI Memory</h3>
-                  <p className="text-xs text-zinc-400">Train Autumn with custom instructions and memory rules</p>
+                  <p className="text-xs text-[var(--text-secondary)]">Train Autumn with custom instructions and memory rules</p>
                 </div>
               </div>
-              <button onClick={() => setIsMemoryOpen(false)} className="text-zinc-400 hover:text-white p-1">
+              <button onClick={() => setIsMemoryOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1">
                 <X size={18} />
               </button>
             </div>
@@ -606,7 +606,7 @@ export function Sidebar({
                 </div>
               ) : (
                 <>
-                  <p className="text-xs text-zinc-400 leading-relaxed">
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                     Autumn remembers your context across sessions. Add persistent rules or behavioral preferences below:
                   </p>
 
@@ -615,7 +615,7 @@ export function Sidebar({
                     value={feedbackText}
                     onChange={(e) => setFeedbackText(e.target.value)}
                     placeholder="E.g., 'Always provide clean TypeScript examples without unnecessary boilerplate.', 'Summarize long answers first.', 'Address me as Bhavya.'"
-                    className="w-full bg-[#0D0D14] border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#8B2BFF] focus:ring-1 focus:ring-[#8B2BFF] resize-none"
+                    className="w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--border-strong)] focus:ring-1 focus:ring-[var(--border-strong)] resize-none"
                     required
                   />
 
@@ -626,7 +626,7 @@ export function Sidebar({
                   <button
                     type="submit"
                     disabled={!feedbackText.trim()}
-                    className="py-2.5 px-4 rounded-xl bg-[#8B2BFF] hover:bg-[#9D4BFF] disabled:opacity-40 text-xs font-semibold text-white flex items-center justify-center gap-2 transition-all cursor-pointer shadow-[0_0_15px_rgba(139,43,255,0.4)]"
+                    className="py-2.5 px-4 rounded-xl bg-[var(--accent)] hover:opacity-90 disabled:opacity-40 text-xs font-semibold text-[var(--primary-foreground)] flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
                   >
                     <Sparkles size={14} />
                     <span>Save Instruction to AI Memory</span>
@@ -635,13 +635,13 @@ export function Sidebar({
               )}
             </form>
 
-            <div className="flex justify-end pt-2 border-t border-white/5">
+            <div className="flex justify-end pt-2 border-t border-[var(--border-subtle)]">
               <button 
                 onClick={() => {
                   setIsMemoryOpen(false);
                   setFeedbackSent(false);
                 }}
-                className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-white transition-colors"
+                className="px-4 py-2 rounded-lg bg-[var(--bg-surface-hover)] hover:bg-[var(--border-strong)] text-xs font-semibold text-[var(--text-primary)] transition-colors"
               >
                 Close
               </button>
@@ -652,24 +652,24 @@ export function Sidebar({
 
       {/* USER PROFILE & SETTINGS MODAL */}
       {isProfileOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setIsProfileOpen(false)}>
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setIsProfileOpen(false)}>
           <div
             role="dialog"
             aria-modal="true"
             aria-label="User settings"
-            className="w-full max-w-md rounded-2xl border border-[#8B2BFF]/30 bg-[#0A0A0F] p-5 shadow-[0_26px_60px_rgba(0,0,0,0.85)] text-white"
+            className="w-full max-w-md rounded-2xl border border-[var(--border-strong)] bg-[var(--bg-surface)] p-5 shadow-2xl text-[var(--text-primary)]"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4 pb-4 border-b border-white/5">
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-[var(--border-subtle)]">
               <div className="flex items-center gap-3">
-                <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-[#8B2BFF]/50 bg-gradient-to-tr from-[#8B2BFF] to-[#3B0764] text-base font-bold text-white shadow-[0_0_15px_rgba(139,43,255,0.5)]">
+                <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--bg-card)] text-base font-bold text-[var(--text-primary)] shadow-sm">
                   {displayName.charAt(0)}
                   <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-black" />
                 </div>
                 <div>
-                  <div className="text-base font-bold text-white">{displayName}</div>
-                  <div className="mt-0.5 flex items-center gap-2 text-[0.72rem] text-zinc-400">
-                    <span className="text-[#8B2BFF] font-semibold">{isAdmin ? 'Administrator' : 'Verified User'}</span>
+                  <div className="text-base font-bold text-[var(--text-primary)]">{displayName}</div>
+                  <div className="mt-0.5 flex items-center gap-2 text-[0.72rem] text-[var(--text-secondary)]">
+                    <span className="text-[var(--text-primary)] font-semibold">{isAdmin ? 'Administrator' : 'Verified User'}</span>
                     <span>•</span>
                     <span>Autumn OS v2.0</span>
                   </div>
@@ -679,7 +679,7 @@ export function Sidebar({
               <button
                 type="button"
                 onClick={() => setIsProfileOpen(false)}
-                className="rounded-full p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+                className="rounded-full p-1.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-hover)] hover:text-[var(--text-primary)]"
                 aria-label="Close profile"
               >
                 <X size={18} />
@@ -694,9 +694,9 @@ export function Sidebar({
                   setFeedbackError('');
                   setIsFeedbackOpen(true);
                 }}
-                className="flex w-full items-center gap-3 rounded-xl border border-white/5 bg-[#0D0D14] px-3.5 py-2.5 text-left text-zinc-300 transition-colors hover:border-[#8B2BFF]/40 hover:text-white"
+                className="flex w-full items-center gap-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2.5 text-left text-[var(--text-primary)] transition-colors hover:border-[var(--border-hover)] hover:bg-[var(--bg-card-hover)]"
               >
-                <Lightbulb size={16} className="text-[#8B2BFF]" />
+                <Lightbulb size={16} className="text-[var(--text-primary)]" />
                 <span className="text-[0.84rem] font-medium">Share feedback & ideas</span>
               </button>
 
@@ -706,9 +706,9 @@ export function Sidebar({
                     setIsProfileOpen(false);
                     navigate('/admin');
                   }}
-                  className="flex w-full items-center gap-3 rounded-xl border border-white/5 bg-[#0D0D14] px-3.5 py-2.5 text-left text-zinc-300 transition-colors hover:border-[#8B2BFF]/40 hover:text-white"
+                  className="flex w-full items-center gap-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2.5 text-left text-[var(--text-primary)] transition-colors hover:border-[var(--border-hover)] hover:bg-[var(--bg-card-hover)]"
                 >
-                  <Settings size={16} className="text-[#8B2BFF]" />
+                  <Settings size={16} className="text-[var(--text-primary)]" />
                   <span className="text-[0.84rem] font-medium">Admin Monitoring Dashboard</span>
                 </button>
               )}
@@ -718,9 +718,9 @@ export function Sidebar({
                   setIsProfileOpen(false);
                   setIsChangePasswordOpen(true);
                 }}
-                className="flex w-full items-center gap-3 rounded-xl border border-white/5 bg-[#0D0D14] px-3.5 py-2.5 text-left text-zinc-300 transition-colors hover:border-[#8B2BFF]/40 hover:text-white"
+                className="flex w-full items-center gap-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2.5 text-left text-[var(--text-primary)] transition-colors hover:border-[var(--border-hover)] hover:bg-[var(--bg-card-hover)]"
               >
-                <Lock size={16} className="text-[#8B2BFF]" />
+                <Lock size={16} className="text-[var(--text-primary)]" />
                 <span className="text-[0.84rem] font-medium">Change account password</span>
               </button>
 
@@ -729,7 +729,7 @@ export function Sidebar({
                   setIsProfileOpen(false);
                   handleLogout();
                 }}
-                className="flex w-full items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3.5 py-2.5 text-left text-red-400 transition-colors hover:bg-red-500/20 hover:text-red-300"
+                className="flex w-full items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3.5 py-2.5 text-left text-red-500 transition-colors hover:bg-red-500/20 hover:text-red-400"
               >
                 <LogOut size={16} />
                 <span className="text-[0.84rem] font-medium">Log out of Autumn</span>
@@ -741,14 +741,14 @@ export function Sidebar({
 
       {/* FEEDBACK MODAL */}
       {isFeedbackOpen && (
-        <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setIsFeedbackOpen(false)}>
-          <form role="dialog" aria-modal="true" aria-label="Share feedback" onSubmit={submitSuggestion} onClick={(event) => event.stopPropagation()} className="w-full max-w-md rounded-2xl border border-[#8B2BFF]/30 bg-[#0A0A0F] p-5 shadow-[0_26px_60px_rgba(0,0,0,0.85)] text-white">
+        <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setIsFeedbackOpen(false)}>
+          <form role="dialog" aria-modal="true" aria-label="Share feedback" onSubmit={submitSuggestion} onClick={(event) => event.stopPropagation()} className="w-full max-w-md rounded-2xl border border-[var(--border-strong)] bg-[var(--bg-surface)] p-5 shadow-2xl text-[var(--text-primary)]">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-base font-bold text-white">Help improve Autumn</h2>
-                <p className="mt-1 text-xs text-zinc-400">Share an idea or report something that could work better.</p>
+                <h2 className="text-base font-bold text-[var(--text-primary)]">Help improve Autumn</h2>
+                <p className="mt-1 text-xs text-[var(--text-secondary)]">Share an idea or report something that could work better.</p>
               </div>
-              <button type="button" onClick={() => setIsFeedbackOpen(false)} aria-label="Close feedback" className="text-zinc-400 hover:text-white p-1">
+              <button type="button" onClick={() => setIsFeedbackOpen(false)} aria-label="Close feedback" className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1">
                 <X size={18} />
               </button>
             </div>
@@ -759,17 +759,17 @@ export function Sidebar({
             ) : (
               <>
                 {feedbackError && <div className="mt-4 rounded-xl border border-red-500/35 bg-red-500/10 p-3 text-xs text-red-400">{feedbackError}</div>}
-                <label className="mt-4 block text-xs font-medium text-zinc-300">Category
-                  <select value={feedbackCategory} onChange={(event) => setFeedbackCategory(event.target.value)} className="mt-1.5 w-full rounded-xl border border-white/10 bg-[#0D0D14] p-2.5 text-xs text-white">
+                <label className="mt-4 block text-xs font-medium text-[var(--text-secondary)]">Category
+                  <select value={feedbackCategory} onChange={(event) => setFeedbackCategory(event.target.value)} className="mt-1.5 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-2.5 text-xs text-[var(--text-primary)]">
                     <option value="AI Training Rule">Train the AI (Global Memory Rule)</option>
                     <option value="App Bug / Feature">App Feedback (Bugs / Features)</option>
                   </select>
                 </label>
-                <label className="mt-3 block text-xs font-medium text-zinc-300">Your suggestion
-                  <textarea required maxLength={2000} value={feedbackText} onChange={(event) => setFeedbackText(event.target.value)} rows={4} placeholder={feedbackCategory === 'AI Training Rule' ? "E.g. Always write code with explanations..." : "E.g. Add dark theme option..."} className="mt-1.5 w-full resize-y rounded-xl border border-white/10 bg-[#0D0D14] p-2.5 text-xs text-white outline-none focus:border-[#8B2BFF]" />
-                  <span className="mt-1 block text-right text-[0.68rem] font-normal text-zinc-500">{feedbackText.length}/2000</span>
+                <label className="mt-3 block text-xs font-medium text-[var(--text-secondary)]">Your suggestion
+                  <textarea required maxLength={2000} value={feedbackText} onChange={(event) => setFeedbackText(event.target.value)} rows={4} placeholder={feedbackCategory === 'AI Training Rule' ? "E.g. Always write code with explanations..." : "E.g. Add dark theme option..."} className="mt-1.5 w-full resize-y rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-2.5 text-xs text-[var(--text-primary)] outline-none focus:border-[var(--border-strong)]" />
+                  <span className="mt-1 block text-right text-[0.68rem] font-normal text-[var(--text-muted)]">{feedbackText.length}/2000</span>
                 </label>
-                <button type="submit" disabled={!feedbackText.trim()} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#8B2BFF] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#9D4BFF] disabled:cursor-not-allowed disabled:opacity-50">
+                <button type="submit" disabled={!feedbackText.trim()} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-xs font-semibold text-[var(--primary-foreground)] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 transition-opacity">
                   <Send size={14} />
                   <span>Send suggestion</span>
                 </button>
@@ -781,8 +781,8 @@ export function Sidebar({
 
       {/* CHANGE PASSWORD MODAL */}
       {isChangePasswordOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setIsChangePasswordOpen(false)}>
-          <form onSubmit={changePassword} onClick={(event) => event.stopPropagation()} className="w-full max-w-md space-y-3 rounded-2xl border border-[#8B2BFF]/30 bg-[#0A0A0F] p-6 text-white shadow-2xl">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setIsChangePasswordOpen(false)}>
+          <form onSubmit={changePassword} onClick={(event) => event.stopPropagation()} className="w-full max-w-md space-y-3 rounded-2xl border border-[var(--border-strong)] bg-[var(--bg-surface)] p-6 text-[var(--text-primary)] shadow-2xl">
             <h2 className="text-base font-bold">Change password</h2>
             {passwordError && <p className="text-xs text-red-400">{passwordError}</p>}
             {passwordMessage && <p className="text-xs text-emerald-400">{passwordMessage}</p>}
@@ -793,14 +793,14 @@ export function Sidebar({
                 value={passwords[key]} 
                 onChange={(event) => setPasswords({ ...passwords, [key]: event.target.value })} 
                 placeholder={key === 'current' ? 'Current password' : key === 'next' ? 'New password' : 'Confirm new password'} 
-                className="w-full rounded-xl border border-white/10 bg-[#0D0D14] p-2.5 text-xs text-white focus:outline-none focus:border-[#8B2BFF]" 
+                className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-2.5 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--border-strong)]" 
                 required 
               />
             ))}
-            <p className="text-[0.68rem] text-zinc-500">Must be 10+ characters, at most 72 UTF-8 bytes, not your username.</p>
+            <p className="text-[0.68rem] text-[var(--text-muted)]">Must be 10+ characters, at most 72 UTF-8 bytes, not your username.</p>
             <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setIsChangePasswordOpen(false)} className="rounded-xl px-3 py-1.5 text-xs text-zinc-400 hover:text-white">Cancel</button>
-              <button type="submit" className="rounded-xl bg-[#8B2BFF] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#9D4BFF]">Update</button>
+              <button type="button" onClick={() => setIsChangePasswordOpen(false)} className="rounded-xl px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Cancel</button>
+              <button type="submit" className="rounded-xl bg-[var(--accent)] px-4 py-1.5 text-xs font-semibold text-[var(--primary-foreground)] hover:opacity-90 transition-opacity">Update</button>
             </div>
           </form>
         </div>
