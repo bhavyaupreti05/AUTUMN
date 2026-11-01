@@ -309,10 +309,10 @@ export function ChatArea({
                 <div className="p-2.5 rounded-xl bg-[#12121A] border border-white/5">
                   <div className="flex items-center gap-1 text-[0.68rem] text-zinc-400 font-medium">
                     <Cpu size={12} className="text-[#8B2BFF]" />
-                    <span>AI Model</span>
+                    <span>Intelligence</span>
                   </div>
-                  <div className="text-[0.76rem] font-bold text-white mt-1 truncate" title="Groq Qwen 2.5 32B / Llama">
-                    Qwen 2.5 32B Cloud
+                  <div className="text-[0.76rem] font-bold text-white mt-1 truncate">
+                    Autumn Neural Core
                   </div>
                 </div>
 
@@ -322,27 +322,27 @@ export function ChatArea({
                     <span>Memory</span>
                   </div>
                   <div className="text-[0.76rem] font-bold text-white mt-1">
-                    SQLite + Vector
+                    Active & Adaptive
                   </div>
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-[#12121A] border border-white/5">
                   <div className="flex items-center gap-1 text-[0.68rem] text-zinc-400 font-medium">
                     <Wrench size={12} className="text-[#8B2BFF]" />
-                    <span>Tools</span>
+                    <span>Architecture</span>
                   </div>
                   <div className="text-[0.76rem] font-bold text-white mt-1">
-                    RAG, Code, Doc
+                    Multi-Agent OS
                   </div>
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-[#12121A] border border-white/5">
-                  <div className="flex items-center gap-1 text-[0.68rem] text-zinc-400 font-medium">
+                  <div className="flex items-center gap-1 text-[0.68rem] text-emerald-400 font-medium">
                     <Zap size={12} className="text-emerald-400" />
                     <span>Performance</span>
                   </div>
                   <div className="text-[0.76rem] font-bold text-emerald-400 mt-1">
-                    &lt; 200ms TTFT
+                    Real-Time
                   </div>
                 </div>
               </div>

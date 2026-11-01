@@ -44,7 +44,7 @@ class TestWebSearch(unittest.TestCase):
         steps = orchestrator.generate_reasoning_steps(agent, "write a function", has_docs=False, has_web_search=True)
         self.assertGreaterEqual(len(steps), 3)
         self.assertTrue(any("DevArchitect" in s for s in steps))
-        self.assertTrue(any("DuckDuckGo" in s for s in steps))
+        self.assertTrue(any("live web" in s for s in steps))
 
     def test_orchestrator_execute_tool_web_search(self):
         with patch("src.agents.orchestrator.search_duckduckgo") as mock_search:

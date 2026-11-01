@@ -13,7 +13,6 @@ import {
   Menu, 
   Maximize, 
   Minimize, 
-  Zap, 
   FileText, 
   X,
   Download
@@ -189,12 +188,6 @@ export function ChatPage() {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Online
               </div>
-
-              {/* Powered by AI badge */}
-              <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.68rem] font-medium bg-[#8B2BFF]/10 text-[#A75BFF] border border-[#8B2BFF]/25 shadow-xs">
-                <Zap size={11} className="text-[#8B2BFF]" />
-                Powered by Groq Cloud AI
-              </div>
             </div>
 
             {/* Attached Documents in Header */}
@@ -327,8 +320,8 @@ export function ChatPage() {
                   <span>Open the <strong className="text-white">Memory</strong> tab in the sidebar to add persistent rules and train Autumn's personality.</span>
                 </li>
                 <li className="flex items-start gap-2.5 p-2 rounded-xl bg-[#0D0D14] border border-white/5">
-                  <span className="font-bold text-[#8B2BFF] shrink-0">⚡ Cloud</span>
-                  <span>Groq Cloud ultra-fast inference (<span className="text-emerald-400 font-semibold">&lt; 200ms TTFT</span>) with fallback to local Qwen LLM.</span>
+                  <span className="font-bold text-[#8B2BFF] shrink-0">⚡ Speed</span>
+                  <span>Instant real-time streaming inference with adaptive worker agent routing.</span>
                 </li>
               </ul>
 

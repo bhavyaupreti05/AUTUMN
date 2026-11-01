@@ -49,10 +49,10 @@ class Orchestrator:
         steps.append(f"Analyzing objective with {agent.title} ({agent.name}).")
 
         if has_docs:
-            steps.append("Retrieving contextual semantic embeddings from document vector store.")
+            steps.append("Analyzing attached document knowledge base for contextual evidence.")
         
         if has_web_search:
-            steps.append("Searching live web index via DuckDuckGo for real-time citations.")
+            steps.append("Searching the live web for verified facts and real-time updates.")
 
         if agent.id == "dev":
             steps.append("Inspecting architecture requirements, syntax standards, and Big-O efficiency.")

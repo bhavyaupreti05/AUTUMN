@@ -303,7 +303,7 @@ def chat_endpoint(request: Request, chat_req: ChatRequest, service: ChatService 
 
         # 3. Live Web Search Tool execution if triggered
         if should_search:
-            yield f"data: {json.dumps({'thought': f'Executing live DuckDuckGo search for: \"{chat_req.message[:50]}\"...'})}\n\n"
+            yield f"data: {json.dumps({'thought': f'Searching the live web for: \"{chat_req.message[:50]}\"...'})}\n\n"
             search_res = orchestrator.execute_tool("web_search", query=chat_req.message, max_results=5)
             results = search_res.get("results", [])
             if results:

@@ -177,7 +177,7 @@ export function ChatInput({
         <button
           type="button"
           onClick={toggleWebSearch}
-          title="Toggle live DuckDuckGo internet retrieval for real-time citations"
+          title="Toggle live web search for real-time citations"
           className={clsx(
             "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.68rem] font-medium transition-all cursor-pointer border whitespace-nowrap shrink-0",
             isWebSearch
