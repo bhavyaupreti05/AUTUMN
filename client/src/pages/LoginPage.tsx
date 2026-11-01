@@ -102,7 +102,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 relative overflow-hidden text-white">
       {/* Ambient background glow */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] bg-[#8B2BFF] opacity-15 blur-[140px] pointer-events-none rounded-full" />
       
@@ -131,46 +131,46 @@ export function LoginPage() {
           </div>
         </div>
 
-        <div className="bg-[var(--bg-surface)]/90 backdrop-blur-xl p-6 sm:p-7 rounded-2xl border border-[var(--border-subtle)] shadow-[0_12px_40px_rgba(0,0,0,0.18)] w-full text-left">
+        <div className="bg-[#0B0B10] p-6 sm:p-7 rounded-2xl border border-[#8B2BFF]/30 shadow-[0_20px_60px_rgba(0,0,0,0.85)] w-full text-left text-white">
           {error && (
-            <div className="bg-[rgba(239,68,68,0.1)] text-[var(--error)] p-3 rounded-xl mb-4 text-xs font-medium border border-[rgba(239,68,68,0.25)] text-center">
+            <div className="bg-red-500/10 text-red-400 p-3 rounded-xl mb-4 text-xs font-medium border border-red-500/25 text-center">
               {error}
             </div>
           )}
           {(success || locationSuccess) && (
-            <div className="bg-[var(--accent-muted)] text-[var(--accent)] p-3 rounded-xl mb-4 text-xs font-medium border border-[color-mix(in_srgb,var(--accent)_25%,transparent)] text-center">
+            <div className="bg-[#8B2BFF]/15 text-[#A75BFF] p-3 rounded-xl mb-4 text-xs font-medium border border-[#8B2BFF]/30 text-center">
               {success || locationSuccess}
             </div>
           )}
 
           <form onSubmit={handleAuth} className="space-y-3.5">
             <div>
-              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1 px-0.5">Username / Email</label>
+              <label className="block text-xs font-medium text-zinc-400 mb-1 px-0.5">Username / Email</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="name@example.com"
-                className="w-full bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-xl py-2.5 px-3.5 text-[0.92rem] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-all"
+                className="w-full bg-black text-white border border-white/10 rounded-xl py-2.5 px-3.5 text-[0.92rem] focus:outline-none focus:border-[#8B2BFF] focus:ring-1 focus:ring-[#8B2BFF] transition-all"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1 px-0.5">Password</label>
+              <label className="block text-xs font-medium text-zinc-400 mb-1 px-0.5">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-xl py-2.5 pl-3.5 pr-10 text-[0.92rem] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-all"
+                  className="w-full bg-black text-white border border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-[0.92rem] focus:outline-none focus:border-[#8B2BFF] focus:ring-1 focus:ring-[#8B2BFF] transition-all"
                   required
                 />
                 <button
                   type="button"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   onClick={() => setShowPassword((previous) => !previous)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -179,7 +179,7 @@ export function LoginPage() {
 
             {isLogin && (
               <div className="pt-0.5 flex items-center justify-between gap-2">
-                <span className="text-[0.72rem] text-[var(--text-muted)] font-medium">Quick Login:</span>
+                <span className="text-[0.72rem] text-zinc-500 font-medium">Quick Login:</span>
                 <div className="flex gap-1.5">
                   <button
                     type="button"
@@ -189,8 +189,8 @@ export function LoginPage() {
                     }}
                     className={`text-[0.72rem] px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
                       username === 'bhavya05@mail.com'
-                        ? 'border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent)] font-semibold'
-                        : 'border-[var(--border-subtle)] bg-[var(--bg-primary)] text-[var(--text-secondary)] hover:border-[var(--border-hover)]'
+                        ? 'border-[#8B2BFF] bg-[#8B2BFF]/20 text-white font-semibold shadow-[0_0_10px_rgba(139,43,255,0.3)]'
+                        : 'border-white/10 bg-black text-zinc-400 hover:text-white hover:border-[#8B2BFF]/30'
                     }`}
                   >
                     👑 Admin
@@ -203,8 +203,8 @@ export function LoginPage() {
                     }}
                     className={`text-[0.72rem] px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
                       username === 'testuser@autumn.ai'
-                        ? 'border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent)] font-semibold'
-                        : 'border-[var(--border-subtle)] bg-[var(--bg-primary)] text-[var(--text-secondary)] hover:border-[var(--border-hover)]'
+                        ? 'border-[#8B2BFF] bg-[#8B2BFF]/20 text-white font-semibold shadow-[0_0_10px_rgba(139,43,255,0.3)]'
+                        : 'border-white/10 bg-black text-zinc-400 hover:text-white hover:border-[#8B2BFF]/30'
                     }`}
                   >
                     🧪 Tester
@@ -216,8 +216,7 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              style={{ background: 'var(--energy-gradient)' }}
-              className="w-full hover:brightness-110 active:scale-[0.99] text-white font-semibold py-2.5 px-4 rounded-xl transition-all mt-4 flex justify-center items-center gap-2 disabled:opacity-50 shadow-md cursor-pointer border-none text-[0.92rem]"
+              className="w-full bg-gradient-to-r from-[#8B2BFF] via-[#7B1FFF] to-[#581C87] hover:brightness-110 active:scale-[0.99] text-white font-semibold py-2.5 px-4 rounded-xl transition-all mt-4 flex justify-center items-center gap-2 disabled:opacity-50 shadow-[0_0_20px_rgba(139,43,255,0.35)] cursor-pointer border border-[#A75BFF]/30 text-[0.92rem]"
             >
               {isLoading ? 'Processing...' : (isLogin ? 'Log In' : 'Create Account')}
             </button>
