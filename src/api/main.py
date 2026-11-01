@@ -7,6 +7,7 @@ from src.api.routes import router
 from src.auth.routes import router as auth_router
 from src.api.custom_bots import router as custom_bots_router
 from src.api.public_bots import router as public_bots_router
+from src.api.agent_routes import router as agent_routes_router
 from src.auth.db import init_users_table
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -218,6 +219,7 @@ app.include_router(router, prefix="/api")
 app.include_router(auth_router, prefix="/auth")
 app.include_router(custom_bots_router, prefix="/api")
 app.include_router(public_bots_router, prefix="/api")
+app.include_router(agent_routes_router)
 
 # Serve SPA frontend
 client_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "client", "dist"))

@@ -12,6 +12,7 @@ import { AdminRecoveryPage } from './pages/AdminRecoveryPage';
 import './index.css';
 
 const AdminPage = lazy(() => import('./pages/AdminPage').then(module => ({ default: module.AdminPage })));
+const AgentStudioPage = lazy(() => import('./pages/AgentStudioPage').then(module => ({ default: module.AgentStudioPage })));
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ function App() {
               
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<ChatPage />} />
+                <Route path="/agents" element={<Suspense fallback={null}><AgentStudioPage /></Suspense>} />
                 <Route path="/admin" element={<Suspense fallback={null}><AdminPage /></Suspense>} />
               </Route>
               

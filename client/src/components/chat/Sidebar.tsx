@@ -22,7 +22,8 @@ import {
   FileText,
   Upload,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  Bot
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useState } from 'react';
@@ -214,6 +215,19 @@ export function Sidebar({
             >
               <Home size={16} className={activeTab === 'home' && !currentConversationId ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"} />
               <span>Home</span>
+            </button>
+
+            <button
+              onClick={() => {
+                navigate('/agents');
+              }}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.84rem] font-medium transition-all text-left cursor-pointer border border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] group"
+            >
+              <Bot size={16} className="text-emerald-400 group-hover:scale-110 transition-transform" />
+              <span className="font-semibold text-[var(--text-primary)]">Agent Studio</span>
+              <span className="ml-auto text-[0.6rem] uppercase tracking-wider font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                Studio
+              </span>
             </button>
 
             <button

@@ -15,8 +15,13 @@ import {
   Minimize, 
   FileText, 
   X,
-  Download
+  Download,
+  Bot
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { NotificationBell } from '../components/notifications/NotificationBell';
+import { useAgentStudio } from '../hooks/useAgentStudio';
+import type { AgentNotification } from '../hooks/useAgentStudio';
 
 export function ChatPage() {
   const { userId, username } = useAuth();
@@ -33,6 +38,24 @@ export function ChatPage() {
   const { messages, isGenerating, sendMessage, stopGeneration, regenerateMessage, currentConversationId } = useChat(selectedConvId, '/api/chat', conversationStorageKey);
   const { documents, uploadDocument, isUploading, uploadError, detachDocument } = useDocuments(currentConversationId);
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+
+  // Agent notifications & live toasts
+  const { notifications, markNotificationsRead } = useAgentStudio();
+  const [toastNotification, setToastNotification] = useState<AgentNotification | null>(null);
+  const prevNotifsRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    if (!notifications.length) return;
+    const currentIds = notifications.map(n => n.id);
+    const newItems = notifications.filter(n => !prevNotifsRef.current.includes(n.id));
+    if (newItems.length > 0 && prevNotifsRef.current.length > 0) {
+      setToastNotification(newItems[0]);
+      const timer = setTimeout(() => setToastNotification(null), 7000);
+      return () => clearTimeout(timer);
+    }
+    prevNotifsRef.current = currentIds;
+  }, [notifications]);
 
   const fileInputTriggerRef = useRef<HTMLInputElement>(null);
 
@@ -243,6 +266,22 @@ export function ChatPage() {
               </div>
             )}
 
+            {/* Agent Studio Link */}
+            <button
+              onClick={() => navigate('/agents')}
+              className="px-2.5 py-1 rounded-lg text-[0.74rem] font-semibold text-zinc-300 hover:text-white bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] flex items-center gap-1.5 transition-all cursor-pointer mr-0.5"
+              title="Autonomous Agent Studio"
+            >
+              <Bot size={13} className="text-emerald-400" />
+              <span className="hidden sm:inline">Agents</span>
+            </button>
+
+            {/* Notification Bell */}
+            <NotificationBell
+              notifications={notifications}
+              onMarkAllRead={markNotificationsRead}
+            />
+
             {/* Fullscreen control */}
             <button 
               onClick={toggleFullscreen} 
@@ -372,6 +411,43 @@ export function ChatPage() {
           />
         </div>
       </div>
+
+      {/* Floating Agent Mission Completion Toast */}
+      {toastNotification && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm w-full bg-[#0d0d10]/95 border border-emerald-500/30 rounded-2xl p-4 shadow-2xl backdrop-blur-xl flex items-start gap-3 animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
+            <Bot size={16} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[0.68rem] uppercase font-bold text-emerald-400 tracking-wider">
+                {toastNotification.agent_name || 'Agent Mission Complete'}
+              </span>
+              <button 
+                onClick={() => setToastNotification(null)}
+                className="text-zinc-500 hover:text-white p-0 border-none bg-transparent cursor-pointer"
+              >
+                <X size={13} />
+              </button>
+            </div>
+            <p className="text-[0.82rem] font-medium text-white truncate mt-0.5">
+              {toastNotification.title}
+            </p>
+            <div className="mt-2 flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setToastNotification(null);
+                  navigate('/agents');
+                }}
+                className="text-[0.72rem] font-semibold text-emerald-400 hover:text-emerald-300 underline underline-offset-2 border-none bg-transparent p-0 cursor-pointer"
+              >
+                View Deliverables →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

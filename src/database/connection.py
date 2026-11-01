@@ -294,6 +294,68 @@ def init_db():
         """)
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_custom_bot_integrations_owner_id ON custom_bot_integrations(owner_id)")
         
+        # Autonomous Multi-Agent OS & Pipelines
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS custom_agents (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                role TEXT NOT NULL CHECK (role IN ('manager', 'builder', 'researcher', 'tester', 'reviewer', 'custom')),
+                title TEXT NOT NULL,
+                system_prompt TEXT NOT NULL,
+                tools TEXT NOT NULL DEFAULT '["web_search", "python_sandbox"]',
+                icon TEXT NOT NULL DEFAULT 'bot',
+                is_active BOOLEAN NOT NULL DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_custom_agents_user_id ON custom_agents(user_id)")
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS agent_pipelines (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                goal TEXT NOT NULL,
+                stages TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'running', 'completed', 'failed')),
+                current_stage INTEGER DEFAULT 0,
+                final_output TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_agent_pipelines_user_id ON agent_pipelines(user_id)")
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS agent_tasks (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                agent_id TEXT,
+                pipeline_id TEXT,
+                phase_index INTEGER DEFAULT 0,
+                title TEXT NOT NULL,
+                prompt TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'running', 'completed', 'failed')),
+                result TEXT,
+                artifacts TEXT,
+                error_message TEXT,
+                is_read BOOLEAN NOT NULL DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+                FOREIGN KEY (agent_id) REFERENCES custom_agents (id) ON DELETE SET NULL,
+                FOREIGN KEY (pipeline_id) REFERENCES agent_pipelines (id) ON DELETE CASCADE
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_agent_tasks_user_id ON agent_tasks(user_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_agent_tasks_agent_id ON agent_tasks(agent_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_agent_tasks_pipeline_id ON agent_tasks(pipeline_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_agent_tasks_unread ON agent_tasks(user_id, is_read, status)")
+
         conn.commit()
 
 @contextmanager
