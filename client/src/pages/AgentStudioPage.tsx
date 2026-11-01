@@ -163,7 +163,12 @@ export function AgentStudioPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const runningTasksCount = tasks.filter(t => t.status === 'running' || t.status === 'pending').length;
+  const safeAgents = Array.isArray(agents) ? agents : [];
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
+  const safePipelines = Array.isArray(pipelines) ? pipelines : [];
+  const safeNotifications = Array.isArray(notifications) ? notifications : [];
+
+  const runningTasksCount = safeTasks.filter(t => t.status === 'running' || t.status === 'pending').length;
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex flex-col">
@@ -229,16 +234,16 @@ export function AgentStudioPage() {
                   </div>
 
                   <div className="mt-3 max-h-64 overflow-y-auto space-y-2">
-                    {notifications.length === 0 ? (
+                    {safeNotifications.length === 0 ? (
                       <p className="text-xs text-[var(--text-muted)] py-4 text-center">No unread task alerts.</p>
                     ) : (
-                      notifications.map(n => (
+                      safeNotifications.map(n => (
                         <div key={n.id} className="p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] text-xs">
                           <div className="flex items-center justify-between">
                             <span className="font-semibold text-emerald-400 flex items-center gap-1">
                               <CheckCircle2 size={12} /> {n.agent_name || 'Agent'} finished
                             </span>
-                            <span className="text-[10px] text-[var(--text-muted)]">{n.completed_at?.split(' ')[1]}</span>
+                            <span className="text-[10px] text-[var(--text-muted)]">{n.completed_at ? n.completed_at.slice(11, 16) : ''}</span>
                           </div>
                           <p className="text-[var(--text-primary)] mt-1 font-medium truncate">{n.title}</p>
                         </div>
@@ -267,9 +272,9 @@ export function AgentStudioPage() {
         {/* Tab Switcher */}
         <div className="max-w-7xl mx-auto flex items-center gap-2 mt-4 pt-3 border-t border-[var(--border-subtle)] overflow-x-auto scrollbar-none">
           {[
-            { id: 'agents', label: 'Agent Hub', icon: Bot, count: agents.length },
-            { id: 'tasks', label: 'Missions / Tasks', icon: Activity, count: runningTasksCount > 0 ? `${runningTasksCount} Active` : `${tasks.length}` },
-            { id: 'pipelines', label: 'Multi-Phase Pipelines', icon: GitBranch, count: pipelines.length },
+            { id: 'agents', label: 'Agent Hub', icon: Bot, count: safeAgents.length },
+            { id: 'tasks', label: 'Missions / Tasks', icon: Activity, count: runningTasksCount > 0 ? `${runningTasksCount} Active` : `${safeTasks.length}` },
+            { id: 'pipelines', label: 'Multi-Phase Pipelines', icon: GitBranch, count: safePipelines.length },
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -310,7 +315,7 @@ export function AgentStudioPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {agents.map(agent => (
+              {safeAgents.map(agent => (
                 <div
                   key={agent.id}
                   className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-card-hover)] transition-all flex flex-col justify-between shadow-sm group"
@@ -319,7 +324,7 @@ export function AgentStudioPage() {
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex items-center gap-2.5">
                         <div className="w-9 h-9 rounded-xl bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0">
-                          {getRoleIcon(agent.role)}
+                          {getRoleIcon(agent.role || 'builder')}
                         </div>
                         <div>
                           <h3 className="text-sm font-bold text-[var(--text-primary)] truncate max-w-[180px]">{agent.name}</h3>
@@ -344,7 +349,7 @@ export function AgentStudioPage() {
                     </p>
 
                     <div className="flex flex-wrap gap-1.5 mb-4">
-                      {agent.tools.map((t, idx) => (
+                      {(Array.isArray(agent.tools) ? agent.tools : []).map((t, idx) => (
                         <span key={idx} className="text-[0.65rem] px-2 py-0.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)] font-mono">
                           {t === 'web_search' ? '🔍 Live Web Search' : t === 'python_sandbox' ? '⚡ Python Sandbox' : t}
                         </span>
@@ -392,13 +397,13 @@ export function AgentStudioPage() {
                   <div>
                     <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">Target Agent</label>
                     <select
-                      value={selectedAgentForTask || (agents[0]?.id || '')}
+                      value={selectedAgentForTask || (safeAgents[0]?.id || '')}
                       onChange={e => setSelectedAgentForTask(e.target.value)}
                       className="w-full bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-xl p-2.5 text-xs focus:outline-none focus:border-[var(--border-strong)]"
                     >
-                      {agents.map(a => (
+                      {safeAgents.map(a => (
                         <option key={a.id} value={a.id}>
-                          {a.name} ({a.role.toUpperCase()})
+                          {a.name} ({a.role ? a.role.toUpperCase() : 'AGENT'})
                         </option>
                       ))}
                     </select>
@@ -444,18 +449,18 @@ export function AgentStudioPage() {
             <div className="lg:col-span-7 flex flex-col gap-3">
               <div className="flex items-center justify-between pb-1">
                 <span className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
-                  Missions Log ({tasks.length})
+                  Missions Log ({safeTasks.length})
                 </span>
                 <span className="text-[0.72rem] text-[var(--text-muted)]">Auto-syncing active tasks</span>
               </div>
 
-              {tasks.length === 0 ? (
+              {safeTasks.length === 0 ? (
                 <div className="p-8 text-center rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)]">
                   No background missions dispatched yet. Assign an objective on the left.
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {tasks.map(task => {
+                  {safeTasks.map(task => {
                     const isExpanded = expandedTaskId === task.id;
                     const isCompleted = task.status === 'completed';
                     const isRunning = task.status === 'running' || task.status === 'pending';
@@ -625,15 +630,15 @@ export function AgentStudioPage() {
             {/* Existing Pipelines List */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
-                Active & Completed Workflows ({pipelines.length})
+                Active & Completed Workflows ({safePipelines.length})
               </h3>
 
-              {pipelines.length === 0 ? (
+              {safePipelines.length === 0 ? (
                 <div className="p-8 text-center rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)]">
                   No multi-agent pipelines initiated yet. Launch your first collaborative workflow above.
                 </div>
               ) : (
-                pipelines.map(pipe => (
+                safePipelines.map(pipe => (
                   <div key={pipe.id} className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-3">
                       <div>
@@ -653,7 +658,7 @@ export function AgentStudioPage() {
 
                     {/* Stepper Visualization */}
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-1">
-                      {pipe.stages.map((stage, idx) => {
+                      {(Array.isArray(pipe.stages) ? pipe.stages : []).map((stage, idx) => {
                         const isDone = pipe.current_stage > idx || pipe.status === 'completed';
                         const isCurrent = pipe.current_stage === idx && pipe.status === 'running';
 

@@ -34,12 +34,17 @@ export class ErrorBoundary extends Component<Props, State> {
               <AlertCircle size={48} />
             </div>
             <h2 className="text-[var(--text-primary)] text-xl font-bold mb-2">Something went wrong</h2>
-            <p className="text-[var(--text-secondary)] mb-6 text-sm">
+            <p className="text-[var(--text-secondary)] mb-4 text-sm">
               We encountered an unexpected error while rendering this page.
             </p>
+            {this.state.error && (
+              <div className="mb-6 p-3 rounded-xl bg-black/60 border border-red-500/20 text-left font-mono text-[0.72rem] text-red-400 overflow-x-auto max-h-32">
+                <p className="font-bold">{this.state.error.name}: {this.state.error.message}</p>
+              </div>
+            )}
             <button
               onClick={() => window.location.reload()}
-              className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-4 py-2 rounded-[var(--radius-md)] transition-colors inline-flex items-center justify-center gap-2 w-full"
+              className="bg-white hover:bg-zinc-200 text-black font-semibold px-4 py-2.5 rounded-[var(--radius-md)] transition-colors inline-flex items-center justify-center gap-2 w-full cursor-pointer shadow-md"
             >
               <RefreshCw size={16} />
               Reload Page

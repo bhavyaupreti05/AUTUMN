@@ -215,11 +215,11 @@ app.add_middleware(
 )
 app.add_middleware(OriginPolicyMiddleware, allowed_origins=configured_origins())
 
+app.include_router(agent_routes_router)
 app.include_router(router, prefix="/api")
 app.include_router(auth_router, prefix="/auth")
 app.include_router(custom_bots_router, prefix="/api")
 app.include_router(public_bots_router, prefix="/api")
-app.include_router(agent_routes_router)
 
 # Serve SPA frontend
 client_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "client", "dist"))

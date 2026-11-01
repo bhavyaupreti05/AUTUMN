@@ -82,10 +82,17 @@ export function useAgentStudio() {
       const res = await fetch('/api/agents', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
-        setAgents(data);
+        if (Array.isArray(data)) {
+          setAgents(data);
+        } else if (data && Array.isArray(data.agents)) {
+          setAgents(data.agents);
+        } else {
+          setAgents([]);
+        }
       }
     } catch (e: any) {
       console.error('Failed to load agents', e);
+      setAgents([]);
     }
   }, []);
 
@@ -94,10 +101,17 @@ export function useAgentStudio() {
       const res = await fetch('/api/agents/tasks', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
-        setTasks(data);
+        if (Array.isArray(data)) {
+          setTasks(data);
+        } else if (data && Array.isArray(data.tasks)) {
+          setTasks(data.tasks);
+        } else {
+          setTasks([]);
+        }
       }
     } catch (e: any) {
       console.error('Failed to load tasks', e);
+      setTasks([]);
     }
   }, []);
 
@@ -106,10 +120,17 @@ export function useAgentStudio() {
       const res = await fetch('/api/agents/pipelines', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
-        setPipelines(data);
+        if (Array.isArray(data)) {
+          setPipelines(data);
+        } else if (data && Array.isArray(data.pipelines)) {
+          setPipelines(data.pipelines);
+        } else {
+          setPipelines([]);
+        }
       }
     } catch (e: any) {
       console.error('Failed to load pipelines', e);
+      setPipelines([]);
     }
   }, []);
 
@@ -118,10 +139,17 @@ export function useAgentStudio() {
       const res = await fetch('/api/agents/notifications', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
-        setNotifications(data);
+        if (Array.isArray(data)) {
+          setNotifications(data);
+        } else if (data && Array.isArray(data.notifications)) {
+          setNotifications(data.notifications);
+        } else {
+          setNotifications([]);
+        }
       }
     } catch (e: any) {
       console.error('Failed to load notifications', e);
+      setNotifications([]);
     }
   }, []);
 
