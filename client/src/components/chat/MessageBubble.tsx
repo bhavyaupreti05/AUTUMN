@@ -18,7 +18,7 @@ import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
 import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
 import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
 import { useTheme } from '../../contexts/ThemeContext';
-import { ThumbsDown, ThumbsUp, Volume2, VolumeX, Copy, Check, Send, RotateCw } from 'lucide-react';
+import { ThumbsDown, ThumbsUp, Volume2, VolumeX, Copy, Check, Send, RotateCw, Play, Loader2 } from 'lucide-react';
 
 SyntaxHighlighter.registerLanguage('bash', bash);
 SyntaxHighlighter.registerLanguage('cpp', cpp);
@@ -39,11 +39,34 @@ SyntaxHighlighter.alias('markup', ['html', 'xml']);
 
 const CodeBlock = ({ language, value, theme }: { language: string, value: string, theme: string }) => {
   const [copied, setCopied] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
+  const [runResult, setRunResult] = useState<{ stdout: string; stderr: string; execution_time_ms: number; exit_code: number } | null>(null);
+
+  const isExecutable = language?.toLowerCase() === 'python' || language?.toLowerCase() === 'py';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(value);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleRunCode = async () => {
+    if (isRunning) return;
+    setIsRunning(true);
+    try {
+      const res = await fetch('/api/tools/execute-code', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: value })
+      });
+      const data = await res.json();
+      setRunResult(data);
+    } catch (e: any) {
+      setRunResult({ stdout: '', stderr: e.message || 'Execution request failed', execution_time_ms: 0, exit_code: 1 });
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   return (
@@ -53,14 +76,27 @@ const CodeBlock = ({ language, value, theme }: { language: string, value: string
           <span className="w-2 h-2 rounded-full bg-[#8B2BFF]" />
           {language || 'code'}
         </span>
-        <button 
-          onClick={handleCopy}
-          className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer border-none bg-transparent text-zinc-400"
-          title="Copy code"
-        >
-          {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-          <span className="text-[0.68rem]">{copied ? 'Copied!' : 'Copy code'}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {isExecutable && (
+            <button
+              onClick={handleRunCode}
+              disabled={isRunning}
+              className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-[#8B2BFF]/20 hover:bg-[#8B2BFF]/40 border border-[#8B2BFF]/40 text-[#A75BFF] hover:text-white transition-all cursor-pointer text-[0.68rem] font-semibold"
+              title="Run in Autumn Python Sandbox"
+            >
+              {isRunning ? <Loader2 size={12} className="animate-spin text-[#8B2BFF]" /> : <Play size={11} className="fill-current" />}
+              <span>{isRunning ? 'Running...' : 'Run Code'}</span>
+            </button>
+          )}
+          <button 
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer border-none bg-transparent text-zinc-400"
+            title="Copy code"
+          >
+            {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+            <span className="text-[0.68rem]">{copied ? 'Copied!' : 'Copy code'}</span>
+          </button>
+        </div>
       </div>
       <SyntaxHighlighter
         style={(theme === 'dark' ? vscDarkPlus : oneLight) as any}
@@ -70,6 +106,26 @@ const CodeBlock = ({ language, value, theme }: { language: string, value: string
       >
         {value}
       </SyntaxHighlighter>
+
+      {/* Real-time Sandbox Output Console */}
+      {runResult && (
+        <div className="border-t border-white/10 bg-black p-3.5 font-mono text-xs">
+          <div className="flex items-center justify-between text-[0.68rem] text-zinc-400 mb-1.5 border-b border-white/5 pb-1">
+            <span className="font-semibold text-emerald-400 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Sandbox Output ({runResult.execution_time_ms}ms)
+            </span>
+            <button 
+              onClick={() => setRunResult(null)} 
+              className="text-zinc-500 hover:text-white text-[0.65rem] border-none bg-transparent cursor-pointer"
+            >
+              ✕ Close
+            </button>
+          </div>
+          {runResult.stdout && <pre className="text-zinc-200 whitespace-pre-wrap leading-relaxed m-0 font-mono">{runResult.stdout}</pre>}
+          {runResult.stderr && <pre className="text-red-400 whitespace-pre-wrap leading-relaxed m-0 mt-1 font-mono">{runResult.stderr}</pre>}
+        </div>
+      )}
     </div>
   );
 };

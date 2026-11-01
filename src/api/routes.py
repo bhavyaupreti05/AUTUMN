@@ -58,10 +58,18 @@ class MessageFeedbackRequest(BaseModel):
     rating: str = Field(..., pattern="^(positive|negative)$")
     suggestion: Optional[str] = None
 
+class ExecuteCodeRequest(BaseModel):
+    code: str = Field(..., min_length=1, max_length=25000)
+
 @router.get("/agents")
 def get_agents():
     from src.agents import list_agent_profiles
     return {"agents": list_agent_profiles()}
+
+@router.post("/tools/execute-code")
+def execute_code_endpoint(req: ExecuteCodeRequest, current_user: dict = Depends(get_current_user)):
+    from src.agents import execute_python_code
+    return execute_python_code(req.code)
     
 @router.get("/health")
 def health_check():
