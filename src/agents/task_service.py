@@ -78,7 +78,20 @@ class TaskService:
                     elif chunk.get("type") == "error":
                         raise RuntimeError(chunk.get("error", "LLM generation failed"))
             
-            await asyncio.to_thread(_generate)
+            try:
+                await asyncio.to_thread(_generate)
+            except Exception as gen_err:
+                from src.llm.provider import Llama, QwenProvider
+                if Llama is not None and not generated_chunks:
+                    logger.warning(f"Task {task_id} primary generation failed ({gen_err}), attempting local fallback...")
+                    def _local_generate():
+                        local_llm = QwenProvider()
+                        for chunk in local_llm.generate_stream(full_prompt, is_background_task=True):
+                            if chunk.get("type") == "text":
+                                generated_chunks.append(chunk.get("content", ""))
+                    await asyncio.to_thread(_local_generate)
+                else:
+                    raise gen_err
             final_text = "".join(generated_chunks).strip()
 
             # Tool execution: Python Sandbox

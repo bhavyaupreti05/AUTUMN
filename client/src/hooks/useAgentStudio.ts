@@ -215,6 +215,7 @@ export function useAgentStudio() {
       }
       const data = await res.json();
       setTasks(prev => [data.task, ...prev]);
+      setTimeout(() => fetchTasks(), 1200);
       return data.task;
     } catch (e: any) {
       setError(e.message);
@@ -240,6 +241,7 @@ export function useAgentStudio() {
       }
       const data = await res.json();
       setPipelines(prev => [data.pipeline, ...prev]);
+      setTimeout(() => fetchPipelines(), 1200);
       return data.pipeline;
     } catch (e: any) {
       setError(e.message);

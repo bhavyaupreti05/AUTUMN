@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { createId } from '../utils/id';
 
 export interface Message {
@@ -20,6 +21,7 @@ export interface Message {
 const CHAT_TIMEOUT_MS = 600000; // 10 minutes for slow local LLM inference; avoid aborting valid document-grounded answers
 
 export function useChat(initialConversationId: string | null | undefined, chatEndpoint = '/api/chat', storageKey = 'trpwbot.currentConversationId') {
+  const queryClient = useQueryClient();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -288,6 +290,7 @@ export function useChat(initialConversationId: string | null | undefined, chatEn
         cancelAnimationFrame(flushFrameRef.current);
         flushFrameRef.current = null;
       }
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
     }
   }, [chatEndpoint, isGenerating, scheduleFlush, currentConversationId]);
 
@@ -452,6 +455,7 @@ export function useChat(initialConversationId: string | null | undefined, chatEn
         cancelAnimationFrame(flushFrameRef.current);
         flushFrameRef.current = null;
       }
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
     }
   }, [chatEndpoint, messages, isGenerating, scheduleFlush, currentConversationId]);
 

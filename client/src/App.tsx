@@ -4,11 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { LoginPage } from './pages/LoginPage';
 import { ChatPage } from './pages/ChatPage';
-import { ResetPasswordPage } from './pages/ResetPasswordPage';
-import { AdminRecoveryPage } from './pages/AdminRecoveryPage';
 import './index.css';
 
 const AdminPage = lazy(() => import('./pages/AdminPage').then(module => ({ default: module.AdminPage })));
@@ -23,19 +19,19 @@ function App() {
         <AuthProvider>
           <ErrorBoundary>
             <BrowserRouter>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/admin-recovery" element={<AdminRecoveryPage />} />
-              
-              <Route element={<ProtectedRoute />}>
+              <Routes>
+                {/* Direct open access for everyone */}
                 <Route path="/" element={<ChatPage />} />
                 <Route path="/agents" element={<Suspense fallback={null}><AgentStudioPage /></Suspense>} />
                 <Route path="/admin" element={<Suspense fallback={null}><AdminPage /></Suspense>} />
-              </Route>
-              
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+                
+                {/* Redirect login / registration / recovery directly to chat */}
+                <Route path="/login" element={<Navigate to="/" replace />} />
+                <Route path="/reset-password" element={<Navigate to="/" replace />} />
+                <Route path="/admin-recovery" element={<Navigate to="/" replace />} />
+                
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
             </BrowserRouter>
           </ErrorBoundary>
         </AuthProvider>

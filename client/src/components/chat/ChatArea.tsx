@@ -194,7 +194,7 @@ export function ChatArea({
     if (messages.length > 0) return null;
 
     return (
-      <div className="flex w-full flex-col items-center pt-6 sm:pt-10 pb-28 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto animate-fade-in">
+      <div className="flex w-full flex-col items-center pt-6 sm:pt-10 pb-44 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto animate-fade-in">
         
         {/* SECTION C: Welcome Hero */}
         <div className="w-full text-left mb-8 sm:mb-10">
@@ -431,7 +431,7 @@ export function ChatArea({
         components={{
           Header: () => <DashboardHero />,
           Footer: () => (
-            <div className="flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 pb-[140px]">
+            <div className="flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 pb-[220px]">
               {isGenerating && (
                 <div className="flex w-full max-w-[960px] flex-row items-center gap-3 animate-fade-in p-3 rounded-xl bg-[var(--bg-surface)]/90 border border-[var(--border-subtle)] backdrop-blur-sm shadow-md">
                   <div className="w-6 h-6 rounded-full bg-[var(--bg-surface-hover)] border border-[var(--border-strong)] flex items-center justify-center shrink-0">
@@ -452,7 +452,7 @@ export function ChatArea({
           aria-label="Jump to latest"
           title="Jump to latest"
           onClick={() => virtuosoRef.current?.scrollToIndex({ index: 'LAST', behavior: 'smooth' })}
-          className="absolute bottom-24 left-1/2 z-10 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--bg-surface)] text-[var(--text-secondary)] shadow-lg transition-all hover:bg-[var(--accent)] hover:text-[var(--primary-foreground)]"
+          className="absolute bottom-36 sm:bottom-40 left-1/2 z-10 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--bg-surface)] text-[var(--text-secondary)] shadow-lg transition-all hover:bg-[var(--accent)] hover:text-[var(--primary-foreground)]"
         >
           <ArrowDown size={16} />
         </button>

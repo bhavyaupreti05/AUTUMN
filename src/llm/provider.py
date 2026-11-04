@@ -149,23 +149,41 @@ class QwenProvider(LLMProvider):
 
 
 class GroqProvider(LLMProvider):
+    # Verified active Groq cloud models in priority order
+    FALLBACK_MODELS = [
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+    ]
+
     def __init__(self, api_key: str = None, model: str = None):
         self.api_key = api_key or settings.GROQ_API_KEY
-        self.model = model or settings.GROQ_MODEL
+        raw_model = (model or settings.GROQ_MODEL or "").strip()
+        # Sanitize known decommissioned or typo models
+        if "qwen3.8" in raw_model or not raw_model:
+            raw_model = "llama-3.3-70b-versatile"
+        self.model = raw_model
         self.endpoint = "https://api.groq.com/openai/v1/chat/completions"
 
     def _parse_prompt_to_messages(self, prompt: str) -> List[Dict[str, str]]:
         import re
-        pattern = r"<\|im_start\|>(\w+)\n(.*?)<\|im_end\|>"
-        matches = re.findall(pattern, prompt, re.DOTALL)
-        if matches:
+        if "<|im_start|>" in prompt:
             messages = []
-            for role, content in matches:
-                role_clean = role.strip().lower()
-                if role_clean not in ["system", "user", "assistant"]:
-                    role_clean = "user"
-                messages.append({"role": role_clean, "content": content.strip()})
-            return messages
+            blocks = prompt.split("<|im_start|>")
+            for b in blocks:
+                b = b.strip()
+                if not b:
+                    continue
+                # Strip trailing <|im_end|> and whitespace
+                b = re.sub(r"<\|im_end\|>.*$", "", b, flags=re.DOTALL).strip()
+                parts = b.splitlines()
+                role = parts[0].strip().lower() if parts else "user"
+                content = "\n".join(parts[1:]).strip() if len(parts) > 1 else ""
+                if role not in ["system", "user", "assistant"]:
+                    role = "user"
+                if content:
+                    messages.append({"role": role, "content": content})
+            if messages:
+                return messages
         return [{"role": "user", "content": prompt}]
 
     def generate_stream(self, prompt: str, max_tokens: int = None, temperature: float = None, is_background_task: bool = False) -> Generator[Dict[str, Any], None, None]:
@@ -174,11 +192,12 @@ class GroqProvider(LLMProvider):
             return
 
         messages = self._parse_prompt_to_messages(prompt)
-        # Clamp max_tokens to 600 for Groq to stay within free-tier limits (1000 OTPM)
+        
+        # Determine token budget (up to 2048 tokens for rich multi-agent outputs)
         if max_tokens is not None:
-            max_tok = min(max_tokens, 600)
+            max_tok = min(max_tokens, 2048)
         else:
-            max_tok = min(settings.MAX_OUTPUT_TOKENS, 600)
+            max_tok = min(settings.MAX_OUTPUT_TOKENS, 2048)
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -187,75 +206,99 @@ class GroqProvider(LLMProvider):
         }
 
         temp = temperature if temperature is not None else settings.TEMPERATURE
-        final_reason = "COMPLETED"
+        
+        # Construct candidate models list with deduplication
+        models_to_try = []
+        for m in [self.model] + self.FALLBACK_MODELS:
+            if m and m not in models_to_try:
+                models_to_try.append(m)
+
+        last_error = None
         import time
 
-        for attempt in range(2):
-            curr_max_tok = max_tok if attempt == 0 else min(max_tok, 300)
-            payload = {
-                "model": self.model,
-                "messages": messages,
-                "temperature": temp,
-                "max_tokens": curr_max_tok,
-                "stream": True,
-            }
+        for model_candidate in models_to_try:
+            for attempt in range(2):
+                curr_max_tok = max_tok if attempt == 0 else min(max_tok, 800)
+                payload = {
+                    "model": model_candidate,
+                    "messages": messages,
+                    "temperature": temp,
+                    "max_tokens": curr_max_tok,
+                    "stream": True,
+                }
 
-            try:
-                with httpx.Client(timeout=httpx.Timeout(120.0, connect=10.0)) as client:
-                    with client.stream("POST", self.endpoint, headers=headers, json=payload) as response:
-                        if response.status_code == 429 and attempt == 0:
-                            time.sleep(1.5)
-                            continue
+                try:
+                    with httpx.Client(timeout=httpx.Timeout(120.0, connect=10.0)) as client:
+                        with client.stream("POST", self.endpoint, headers=headers, json=payload) as response:
+                            # If rate limited (429), pause briefly or try smaller token attempt
+                            if response.status_code == 429 and attempt == 0:
+                                time.sleep(1.2)
+                                continue
 
-                        if response.status_code != 200:
-                            err_text = response.read().decode("utf-8", errors="replace")
-                            logger.error(f"Groq API error {response.status_code}: {err_text}")
-                            if response.status_code == 429:
-                                yield {
-                                    "type": "error",
-                                    "error": "Rate limit reached on the Groq free tier. Please wait a few seconds and try again.",
-                                    "status": 429
-                                }
-                            else:
-                                yield {"type": "error", "error": f"Groq API error: {err_text}", "status": response.status_code}
+                            # Model not found or invalid request error -> fall through to next candidate model
+                            if response.status_code in (400, 404):
+                                err_text = response.read().decode("utf-8", errors="replace")
+                                logger.warning(f"Groq model {model_candidate} unavailable ({response.status_code}): {err_text}. Trying next fallback.")
+                                last_error = f"Model {model_candidate} unavailable: {err_text}"
+                                break
+
+                            if response.status_code != 200:
+                                err_text = response.read().decode("utf-8", errors="replace")
+                                logger.error(f"Groq API error {response.status_code}: {err_text}")
+                                last_error = err_text
+                                if response.status_code == 429 and model_candidate != self.FALLBACK_MODELS[-1]:
+                                    # Fallback to high-rate-limit 8b model on 429
+                                    break
+                                yield {"type": "error", "error": f"Groq API error ({response.status_code}): {err_text}", "status": response.status_code}
+                                return
+
+                            # Stream chunks successfully
+                            final_reason = "COMPLETED"
+                            for line in response.iter_lines():
+                                if not line:
+                                    continue
+                                if line.startswith("data: "):
+                                    data_str = line[6:].strip()
+                                    if data_str == "[DONE]":
+                                        break
+                                    try:
+                                        chunk_json = json.loads(data_str)
+                                        choices = chunk_json.get("choices", [])
+                                        if choices:
+                                            delta = choices[0].get("delta", {})
+                                            content = delta.get("content", "")
+                                            finish_reason = choices[0].get("finish_reason")
+                                            if content:
+                                                yield {"type": "text", "content": content}
+                                            if finish_reason:
+                                                if finish_reason == "length":
+                                                    final_reason = "MAX_TOKENS"
+                                                else:
+                                                    final_reason = "COMPLETED"
+                                    except Exception as parse_err:
+                                        logger.debug(f"Could not parse SSE chunk: {parse_err}")
+
+                            yield {"type": "status", "status": final_reason}
                             return
 
-                        for line in response.iter_lines():
-                            if not line:
-                                continue
-                            if line.startswith("data: "):
-                                data_str = line[6:].strip()
-                                if data_str == "[DONE]":
-                                    break
-                                try:
-                                    chunk_json = json.loads(data_str)
-                                    choices = chunk_json.get("choices", [])
-                                    if choices:
-                                        delta = choices[0].get("delta", {})
-                                        content = delta.get("content", "")
-                                        finish_reason = choices[0].get("finish_reason")
-                                        if content:
-                                            yield {"type": "text", "content": content}
-                                        if finish_reason:
-                                            if finish_reason == "length":
-                                                final_reason = "MAX_TOKENS"
-                                            else:
-                                                final_reason = "COMPLETED"
-                                except Exception as parse_err:
-                                    logger.debug(f"Could not parse SSE chunk: {parse_err}")
+                except Exception as e:
+                    last_error = str(e)
+                    logger.warning(f"Groq connection attempt {attempt} failed on {model_candidate}: {e}")
+                    if attempt == 1:
+                        break
 
-                yield {"type": "status", "status": final_reason}
+        # If all Groq cloud candidates failed, attempt local fallback if available
+        if Llama is not None and not is_background_task:
+            logger.warning(f"All Groq candidates failed ({last_error}). Falling back to local QwenProvider.")
+            try:
+                local_provider = QwenProvider()
+                for chunk in local_provider.generate_stream(prompt, max_tokens, temperature, is_background_task):
+                    yield chunk
                 return
-            except Exception as e:
-                if attempt == 1:
-                    logger.exception("Exception during Groq streaming")
-                    yield {"type": "error", "error": f"LLM stream error: {str(e)}", "status": 500}
-                    return
-            except Exception as e:
-                if attempt == 1:
-                    logger.exception("Exception during Groq streaming")
-                    yield {"type": "error", "error": f"LLM stream error: {str(e)}", "status": 500}
-                    return
+            except Exception as local_err:
+                logger.error(f"Local fallback also failed: {local_err}")
+
+        yield {"type": "error", "error": f"Groq generation failed across all models: {last_error}", "status": 500}
 
     def health_check(self) -> bool:
         return bool(self.api_key)

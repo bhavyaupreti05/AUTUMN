@@ -123,6 +123,21 @@ def get_user_by_username(username: str) -> dict:
         row = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
         return dict(row) if row else None
 
+def get_default_user() -> dict:
+    user = get_user_by_username("bhavya05@mail.com")
+    if user and user.get("status") == "approved":
+        return user
+    user = get_user_by_username("testuser@autumn.ai")
+    if user and user.get("status") == "approved":
+        return user
+    with get_db_connection() as conn:
+        row = conn.execute("SELECT * FROM users WHERE status = 'approved' ORDER BY is_admin DESC, created_at ASC LIMIT 1").fetchone()
+        if row:
+            return dict(row)
+    from src.auth import security
+    h = security.get_password_hash("12345")
+    return create_user("bhavya05@mail.com", h, is_admin=True, status="approved")
+
 def record_failed_login(username: str, lock_minutes: int = 15):
     with get_db_connection() as conn:
         user = get_user_by_username(username)

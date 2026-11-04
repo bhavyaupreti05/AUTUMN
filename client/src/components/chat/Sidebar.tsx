@@ -2,7 +2,6 @@ import { useConversations } from '../../hooks/useConversations';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { 
-  LogOut, 
   MessageSquare, 
   Edit2, 
   Trash2, 
@@ -81,7 +80,7 @@ export function Sidebar({
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    onNewConversation();
   };
 
   const changePassword = async (event: FormEvent) => {
@@ -743,10 +742,10 @@ export function Sidebar({
                   setIsProfileOpen(false);
                   handleLogout();
                 }}
-                className="flex w-full items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3.5 py-2.5 text-left text-red-500 transition-colors hover:bg-red-500/20 hover:text-red-400"
+                className="flex w-full items-center gap-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2.5 text-left text-[var(--text-primary)] transition-colors hover:border-[var(--border-hover)] hover:bg-[var(--bg-card-hover)]"
               >
-                <LogOut size={16} />
-                <span className="text-[0.84rem] font-medium">Log out of Autumn</span>
+                <Plus size={16} />
+                <span className="text-[0.84rem] font-medium">Start fresh conversation</span>
               </button>
             </div>
           </div>
