@@ -72,12 +72,6 @@ def get_current_user(request: Request, token: str | None = Depends(oauth2_scheme
 
 def require_admin(current_user: dict = Depends(get_current_user)):
     """
-    Ensures the current user is an administrator.
+    Open access: All users have full equal access.
     """
-    if not current_user.get("is_admin"):
-        from src.auth.db import get_default_user
-        default_user = get_default_user()
-        if default_user.get("is_admin"):
-            return default_user
-        return current_user
     return current_user

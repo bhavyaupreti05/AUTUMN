@@ -7,7 +7,6 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ChatPage } from './pages/ChatPage';
 import './index.css';
 
-const AdminPage = lazy(() => import('./pages/AdminPage').then(module => ({ default: module.AdminPage })));
 const AgentStudioPage = lazy(() => import('./pages/AgentStudioPage').then(module => ({ default: module.AgentStudioPage })));
 
 const queryClient = new QueryClient();
@@ -23,12 +22,12 @@ function App() {
                 {/* Direct open access for everyone */}
                 <Route path="/" element={<ChatPage />} />
                 <Route path="/agents" element={<Suspense fallback={null}><AgentStudioPage /></Suspense>} />
-                <Route path="/admin" element={<Suspense fallback={null}><AdminPage /></Suspense>} />
                 
-                {/* Redirect login / registration / recovery directly to chat */}
+                {/* Redirect admin / login / registration / recovery directly to main app */}
+                <Route path="/admin" element={<Navigate to="/" replace />} />
+                <Route path="/admin-recovery" element={<Navigate to="/" replace />} />
                 <Route path="/login" element={<Navigate to="/" replace />} />
                 <Route path="/reset-password" element={<Navigate to="/" replace />} />
-                <Route path="/admin-recovery" element={<Navigate to="/" replace />} />
                 
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
