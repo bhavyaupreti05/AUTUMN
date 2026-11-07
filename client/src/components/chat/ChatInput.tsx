@@ -143,7 +143,7 @@ export function ChatInput({
   }, [input]);
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-5 bg-gradient-to-t from-[var(--bg-primary)] via-[var(--bg-primary)]/85 to-transparent flex flex-col items-center pointer-events-none z-30">
+    <div className="w-full px-3 sm:px-5 pt-2 pb-3 bg-[var(--bg-primary)] flex flex-col items-center z-30 shrink-0">
       
       {/* Level 2 Agent Selector & Live Web Search Bar */}
       <div className="w-full max-w-[880px] mb-2 flex items-center justify-between pointer-events-auto px-1 gap-2">

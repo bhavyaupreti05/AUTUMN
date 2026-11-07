@@ -377,24 +377,26 @@ export function ChatPage() {
         )}
 
         {/* SECTION C, D, E, F: Chat & Dashboard Area */}
-        <ChatArea
-          messages={messages}
-          isGenerating={isGenerating}
-          botName="Autumn"
-          username={username}
-          onRetry={handleRetry}
-          onEdit={regenerateMessage}
-          documentsCount={documents.length}
-          onSuggestedPrompt={(prompt, agentMode) => {
-            const targetAgent = (agentMode as any) || selectedAgent;
-            if (agentMode) setSelectedAgent(agentMode as any);
-            sendMessage(prompt, targetAgent, isWebSearch);
-          }}
-          onOpenFileUpload={triggerUploadDialog}
-        />
+        <div className="flex-1 min-h-0 relative w-full">
+          <ChatArea
+            messages={messages}
+            isGenerating={isGenerating}
+            botName="Autumn"
+            username={username}
+            onRetry={handleRetry}
+            onEdit={regenerateMessage}
+            documentsCount={documents.length}
+            onSuggestedPrompt={(prompt, agentMode) => {
+              const targetAgent = (agentMode as any) || selectedAgent;
+              if (agentMode) setSelectedAgent(agentMode as any);
+              sendMessage(prompt, targetAgent, isWebSearch);
+            }}
+            onOpenFileUpload={triggerUploadDialog}
+          />
+        </div>
         
         {/* SECTION G: Chat Composer */}
-        <div className="bg-[var(--bg-primary)] flex flex-col shrink-0 pb-4 relative transition-colors">
+        <div className="bg-[var(--bg-primary)] border-t border-[var(--border-subtle)] flex flex-col shrink-0 relative transition-colors">
           <ChatInput 
             onSendMessage={(text, agent, webSearch) => sendMessage(text, agent || selectedAgent, webSearch ?? isWebSearch)} 
             disabled={isGenerating} 
