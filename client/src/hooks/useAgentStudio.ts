@@ -46,20 +46,47 @@ export interface AgentTask {
   completed_at?: string;
 }
 
+export interface PipelineStage {
+  title: string;
+  role: string;
+  agent_id?: string;
+  instruction: string;
+  task_id?: string;
+  status?: 'pending' | 'running' | 'completed' | 'failed';
+  result?: string;
+  artifacts?: {
+    sandbox_execution?: {
+      stdout: string;
+      stderr: string;
+      exit_code: number;
+      execution_time_ms: number;
+    };
+    search_citations?: Array<{ title: string; url: string; snippet: string }>;
+    grounded_documents?: Array<{ id: string; filename: string; chunks_used?: number }>;
+    context_links?: string[];
+  };
+}
+
+export interface PipelineTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  stages: PipelineStage[];
+  created_at?: string;
+}
+
 export interface AgentPipeline {
   id: string;
   user_id: string;
   title: string;
   goal: string;
-  stages: Array<{
-    title: string;
-    role: string;
-    agent_id?: string;
-    instruction: string;
-  }>;
+  stages: PipelineStage[];
   status: 'pending' | 'running' | 'completed' | 'failed';
   current_stage: number;
   final_output?: string;
+  document_ids?: string[];
+  context_links?: string[];
+  template_id?: string;
   created_at: string;
   completed_at?: string;
 }
@@ -78,6 +105,8 @@ export function useAgentStudio() {
   const [tasks, setTasks] = useState<AgentTask[]>([]);
   const [pipelines, setPipelines] = useState<AgentPipeline[]>([]);
   const [notifications, setNotifications] = useState<AgentNotification[]>([]);
+  const [templates, setTemplates] = useState<PipelineTemplate[]>([]);
+  const [presets, setPresets] = useState<PipelineTemplate[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -240,7 +269,68 @@ export function useAgentStudio() {
     }
   };
 
-  const createPipeline = async (title: string, goal: string, stages?: any[]) => {
+  const fetchTemplates = useCallback(async () => {
+    try {
+      const res = await fetch('/api/agents/templates', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setTemplates(data.templates || []);
+        setPresets(data.presets || []);
+      }
+    } catch (e: any) {
+      console.error('Failed to load templates', e);
+    }
+  }, []);
+
+  const saveTemplate = async (name: string, description: string, stages: PipelineStage[]) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/agents/templates', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description, stages })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to save flow template');
+      }
+      const data = await res.json();
+      setTemplates(prev => [data.template, ...prev]);
+      return data.template;
+    } catch (e: any) {
+      setError(e.message);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteTemplate = async (templateId: string) => {
+    try {
+      const res = await fetch(`/api/agents/templates/${templateId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error('Failed to delete template');
+      setTemplates(prev => prev.filter(t => t.id !== templateId));
+    } catch (e: any) {
+      console.error(e);
+      throw e;
+    }
+  };
+
+  const createPipeline = async (
+    title: string,
+    goal: string,
+    stages?: any[],
+    documentIds?: string[],
+    contextLinks?: string[],
+    saveAsTemplate?: boolean,
+    templateName?: string,
+    templateDescription?: string
+  ) => {
     setLoading(true);
     setError(null);
     try {
@@ -248,7 +338,16 @@ export function useAgentStudio() {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, goal, stages })
+        body: JSON.stringify({
+          title,
+          goal,
+          stages,
+          document_ids: documentIds || [],
+          context_links: contextLinks || [],
+          save_as_template: saveAsTemplate,
+          template_name: templateName,
+          template_description: templateDescription
+        })
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -256,6 +355,7 @@ export function useAgentStudio() {
       }
       const data = await res.json();
       setPipelines(prev => [data.pipeline, ...prev]);
+      if (saveAsTemplate) fetchTemplates();
       setTimeout(() => fetchPipelines(), 1200);
       return data.pipeline;
     } catch (e: any) {
@@ -286,6 +386,7 @@ export function useAgentStudio() {
     fetchTasks();
     fetchPipelines();
     fetchNotifications();
+    fetchTemplates();
 
     // Auto-poll notifications and active tasks every 8 seconds
     const interval = setInterval(() => {
@@ -295,23 +396,28 @@ export function useAgentStudio() {
     }, 8000);
 
     return () => clearInterval(interval);
-  }, [fetchAgents, fetchTasks, fetchPipelines, fetchNotifications]);
+  }, [fetchAgents, fetchTasks, fetchPipelines, fetchNotifications, fetchTemplates]);
 
   return {
     agents,
     tasks,
     pipelines,
     notifications,
+    templates,
+    presets,
     loading,
     error,
     createAgent,
     deleteAgent,
     dispatchTask,
     createPipeline,
+    saveTemplate,
+    deleteTemplate,
     markNotificationsRead,
     refreshAgents: fetchAgents,
     refreshTasks: fetchTasks,
     refreshPipelines: fetchPipelines,
-    refreshNotifications: fetchNotifications
+    refreshNotifications: fetchNotifications,
+    refreshTemplates: fetchTemplates
   };
 }

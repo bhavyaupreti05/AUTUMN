@@ -281,16 +281,26 @@ class AgentRepository:
     # -------------------------------------------------------------
 
     @staticmethod
-    def create_pipeline(user_id: str, title: str, goal: str, stages: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def create_pipeline(
+        user_id: str,
+        title: str,
+        goal: str,
+        stages: List[Dict[str, Any]],
+        document_ids: Optional[List[str]] = None,
+        context_links: Optional[List[str]] = None,
+        template_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         pipeline_id = str(uuid.uuid4())
         stages_json = json.dumps(stages)
+        doc_ids_json = json.dumps(document_ids or [])
+        context_links_json = json.dumps(context_links or [])
 
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO agent_pipelines (id, user_id, title, goal, stages, status, current_stage)
-                VALUES (?, ?, ?, ?, ?, 'pending', 0)
-            """, (pipeline_id, user_id, title, goal, stages_json))
+                INSERT INTO agent_pipelines (id, user_id, title, goal, stages, status, current_stage, document_ids, context_links, template_id)
+                VALUES (?, ?, ?, ?, ?, 'pending', 0, ?, ?, ?)
+            """, (pipeline_id, user_id, title, goal, stages_json, doc_ids_json, context_links_json, template_id))
             conn.commit()
 
         return AgentRepository.get_pipeline(pipeline_id, user_id)  # type: ignore
@@ -310,6 +320,8 @@ class AgentRepository:
                 return None
             data = dict(row)
             data["stages"] = json.loads(data["stages"]) if data.get("stages") else []
+            data["document_ids"] = json.loads(data["document_ids"]) if data.get("document_ids") else []
+            data["context_links"] = json.loads(data["context_links"]) if data.get("context_links") else []
             return data
 
     @staticmethod
@@ -317,9 +329,11 @@ class AgentRepository:
         pipeline_id: str,
         current_stage: int,
         status: Optional[str] = None,
-        final_output: Optional[str] = None
+        final_output: Optional[str] = None,
+        stages: Optional[List[Dict[str, Any]]] = None
     ) -> Optional[Dict[str, Any]]:
         completed_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S") if status in ("completed", "failed") else None
+        stages_json = json.dumps(stages) if stages is not None else None
 
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -328,15 +342,16 @@ class AgentRepository:
                 SET current_stage = ?,
                     status = COALESCE(?, status),
                     final_output = COALESCE(?, final_output),
+                    stages = COALESCE(?, stages),
                     completed_at = COALESCE(?, completed_at)
                 WHERE id = ?
-            """, (current_stage, status, final_output, completed_at, pipeline_id))
+            """, (current_stage, status, final_output, stages_json, completed_at, pipeline_id))
             conn.commit()
 
         return AgentRepository.get_pipeline(pipeline_id)
 
     @staticmethod
-    def list_pipelines(user_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+    def list_pipelines(user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
@@ -348,5 +363,74 @@ class AgentRepository:
         for r in rows:
             item = dict(r)
             item["stages"] = json.loads(item["stages"]) if item.get("stages") else []
+            item["document_ids"] = json.loads(item["document_ids"]) if item.get("document_ids") else []
+            item["context_links"] = json.loads(item["context_links"]) if item.get("context_links") else []
             pipelines.append(item)
         return pipelines
+
+    # -------------------------------------------------------------
+    # PIPELINE TEMPLATES (Reusable Flow Definitions)
+    # -------------------------------------------------------------
+
+    @staticmethod
+    def create_pipeline_template(
+        user_id: str,
+        name: str,
+        description: Optional[str],
+        stages: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        template_id = str(uuid.uuid4())
+        stages_json = json.dumps(stages)
+
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO pipeline_templates (id, user_id, name, description, stages)
+                VALUES (?, ?, ?, ?, ?)
+            """, (template_id, user_id, name, description or "", stages_json))
+            conn.commit()
+
+        return AgentRepository.get_pipeline_template(template_id, user_id)  # type: ignore
+
+    @staticmethod
+    def get_pipeline_template(template_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            query = "SELECT * FROM pipeline_templates WHERE id = ?"
+            params = [template_id]
+            if user_id:
+                query += " AND user_id = ?"
+                params.append(user_id)
+            cursor.execute(query, tuple(params))
+            row = cursor.fetchone()
+            if not row:
+                return None
+            data = dict(row)
+            data["stages"] = json.loads(data["stages"]) if data.get("stages") else []
+            return data
+
+    @staticmethod
+    def list_pipeline_templates(user_id: str) -> List[Dict[str, Any]]:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT * FROM pipeline_templates WHERE user_id = ? ORDER BY created_at DESC
+            """, (user_id,))
+            rows = cursor.fetchall()
+
+        templates = []
+        for r in rows:
+            item = dict(r)
+            item["stages"] = json.loads(item["stages"]) if item.get("stages") else []
+            templates.append(item)
+        return templates
+
+    @staticmethod
+    def delete_pipeline_template(template_id: str, user_id: str) -> bool:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                DELETE FROM pipeline_templates WHERE id = ? AND user_id = ?
+            """, (template_id, user_id))
+            conn.commit()
+            return cursor.rowcount > 0

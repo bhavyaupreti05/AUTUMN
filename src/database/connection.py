@@ -356,6 +356,20 @@ def init_db():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_agent_tasks_pipeline_id ON agent_tasks(pipeline_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_agent_tasks_unread ON agent_tasks(user_id, is_read, status)")
 
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS pipeline_templates (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT,
+                stages TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_pipeline_templates_user_id ON pipeline_templates(user_id)")
+
         try:
             cursor.execute("ALTER TABLE agent_tasks ADD COLUMN context_links TEXT;")
         except sqlite3.OperationalError:
@@ -363,6 +377,21 @@ def init_db():
 
         try:
             cursor.execute("ALTER TABLE agent_tasks ADD COLUMN document_ids TEXT;")
+        except sqlite3.OperationalError:
+            pass
+
+        try:
+            cursor.execute("ALTER TABLE agent_pipelines ADD COLUMN document_ids TEXT;")
+        except sqlite3.OperationalError:
+            pass
+
+        try:
+            cursor.execute("ALTER TABLE agent_pipelines ADD COLUMN context_links TEXT;")
+        except sqlite3.OperationalError:
+            pass
+
+        try:
+            cursor.execute("ALTER TABLE agent_pipelines ADD COLUMN template_id TEXT;")
         except sqlite3.OperationalError:
             pass
 

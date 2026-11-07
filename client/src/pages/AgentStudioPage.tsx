@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { 
   Bot, 
   Crown, 
@@ -24,9 +26,12 @@ import {
   ChevronUp,
   FileText,
   Upload,
-  Link2
+  Link2,
+  Download,
+  Bookmark,
+  Layers
 } from 'lucide-react';
-import { useAgentStudio } from '../hooks/useAgentStudio';
+import { useAgentStudio, type PipelineStage } from '../hooks/useAgentStudio';
 
 export function AgentStudioPage() {
   const navigate = useNavigate();
@@ -35,11 +40,15 @@ export function AgentStudioPage() {
     tasks,
     pipelines,
     notifications,
+    templates,
+    presets,
     loading,
     createAgent,
     deleteAgent,
     dispatchTask,
     createPipeline,
+    saveTemplate,
+    deleteTemplate,
     markNotificationsRead
   } = useAgentStudio();
 
@@ -60,9 +69,43 @@ export function AgentStudioPage() {
   const [docUploadError, setDocUploadError] = useState<string | null>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   
-  // Pipeline form
+  // Pipeline Flow Builder state
+  const defaultStages: PipelineStage[] = [
+    {
+      title: 'Phase 1: Research & Discovery',
+      role: 'researcher',
+      instruction: 'Analyze requirements, scout existing architecture, gather relevant docs, and establish specifications.'
+    },
+    {
+      title: 'Phase 2: Architecture & Implementation',
+      role: 'builder',
+      instruction: 'Design core architecture and implement production-ready, clean, modular code based on Phase 1 research.'
+    },
+    {
+      title: 'Phase 3: Sandbox Verification & QA',
+      role: 'tester',
+      instruction: 'Inspect code in Python Sandbox, verify exit codes, run edge cases, and isolate bugs.'
+    },
+    {
+      title: 'Phase 4: Senior Audit & Executive Synthesis',
+      role: 'reviewer',
+      instruction: 'Review code quality, performance, and security, and assemble the executive deliverable.'
+    }
+  ];
+
   const [pipelineTitle, setPipelineTitle] = useState('');
   const [pipelineGoal, setPipelineGoal] = useState('');
+  const [pipelineStages, setPipelineStages] = useState<PipelineStage[]>(defaultStages);
+  const [pipelineDocIds, setPipelineDocIds] = useState<string[]>([]);
+  const [pipelineContextLinks, setPipelineContextLinks] = useState<string[]>([]);
+  const [pipelineNewLink, setPipelineNewLink] = useState('');
+  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [templateDescription, setTemplateDescription] = useState('');
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('preset-fullstack');
+  const [pipelineActiveTabs, setPipelineActiveTabs] = useState<Record<string, number | 'final'>>({});
+  const [copiedPipelineId, setCopiedPipelineId] = useState<string | null>(null);
+  const pipelineDocInputRef = useRef<HTMLInputElement>(null);
   
   // New Agent Form
   const [agentName, setAgentName] = useState('');
@@ -234,12 +277,148 @@ export function AgentStudioPage() {
     setActiveTab('tasks');
   };
 
+  const handleSelectPreset = (presetId: string) => {
+    setSelectedPresetId(presetId);
+    if (presetId === 'custom') return;
+    
+    // Check in presets
+    const foundPreset = (presets || []).find(p => p.id === presetId);
+    if (foundPreset && foundPreset.stages) {
+      setPipelineStages(foundPreset.stages.map(s => ({
+        title: s.title,
+        role: s.role || 'builder',
+        agent_id: s.agent_id,
+        instruction: s.instruction
+      })));
+      return;
+    }
+
+    // Check in templates
+    const foundTemplate = (templates || []).find(t => t.id === presetId);
+    if (foundTemplate && foundTemplate.stages) {
+      setPipelineStages(foundTemplate.stages.map(s => ({
+        title: s.title,
+        role: s.role || 'builder',
+        agent_id: s.agent_id,
+        instruction: s.instruction
+      })));
+    }
+  };
+
+  const handleAddPipelineStage = () => {
+    const nextIdx = pipelineStages.length + 1;
+    setPipelineStages(prev => [
+      ...prev,
+      {
+        title: `Phase ${nextIdx}: Custom Milestone`,
+        role: 'builder',
+        instruction: 'Specify exact phase objective and expected technical deliverables...'
+      }
+    ]);
+  };
+
+  const handleRemovePipelineStage = (idxToRemove: number) => {
+    if (pipelineStages.length <= 1) return;
+    setPipelineStages(prev => prev.filter((_, idx) => idx !== idxToRemove));
+  };
+
+  const handleUpdatePipelineStage = (idx: number, field: keyof PipelineStage, val: any) => {
+    setPipelineStages(prev => prev.map((stage, i) => {
+      if (i === idx) {
+        return { ...stage, [field]: val };
+      }
+      return stage;
+    }));
+  };
+
+  const togglePipelineDoc = (docId: string) => {
+    setPipelineDocIds(prev =>
+      prev.includes(docId) ? prev.filter(id => id !== docId) : [...prev, docId]
+    );
+  };
+
+  const handleDirectPipelineDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingDoc(true);
+    setDocUploadError(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/documents', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Upload failed');
+      }
+      const data = await res.json();
+      const newDoc = data.document;
+      if (newDoc && newDoc.id) {
+        setAvailableDocs(prev => [newDoc, ...prev.filter(d => d.id !== newDoc.id)]);
+        setPipelineDocIds(prev => [...prev, newDoc.id]);
+      }
+    } catch (err: any) {
+      setDocUploadError(err.message || 'Failed to upload document');
+    } finally {
+      setIsUploadingDoc(false);
+      if (pipelineDocInputRef.current) pipelineDocInputRef.current.value = '';
+    }
+  };
+
+  const handleAddPipelineLink = () => {
+    const trimmed = pipelineNewLink.trim();
+    if (!trimmed) return;
+    if (!pipelineContextLinks.includes(trimmed)) {
+      setPipelineContextLinks(prev => [...prev, trimmed]);
+    }
+    setPipelineNewLink('');
+  };
+
+  const handleRemovePipelineLink = (linkToRemove: string) => {
+    setPipelineContextLinks(prev => prev.filter(l => l !== linkToRemove));
+  };
+
+  const handleDownloadDeliverable = (title: string, markdown: string) => {
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_deliverable.md`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopyPipelineDeliverable = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedPipelineId(id);
+    setTimeout(() => setCopiedPipelineId(null), 2000);
+  };
+
   const handlePipelineSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pipelineTitle.trim() || !pipelineGoal.trim()) return;
-    await createPipeline(pipelineTitle.trim(), pipelineGoal.trim());
+    if (!pipelineTitle.trim() || !pipelineGoal.trim() || pipelineStages.length === 0) return;
+    await createPipeline(
+      pipelineTitle.trim(),
+      pipelineGoal.trim(),
+      pipelineStages,
+      pipelineDocIds,
+      pipelineContextLinks,
+      saveAsTemplate,
+      templateName.trim() || undefined,
+      templateDescription.trim() || undefined
+    );
     setPipelineTitle('');
     setPipelineGoal('');
+    setPipelineDocIds([]);
+    setPipelineContextLinks([]);
+    setSaveAsTemplate(false);
+    setTemplateName('');
+    setTemplateDescription('');
     setActiveTab('pipelines');
   };
 
@@ -835,126 +1014,628 @@ export function AgentStudioPage() {
         )}
 
         {/* ========================================================= */}
-        {/* TAB 3: MULTI-AGENT WORKFLOW PIPELINES */}
+        {/* TAB 3: MULTI-AGENT WORKFLOW PIPELINES & CUSTOM FLOW BUILDER */}
         {/* ========================================================= */}
         {activeTab === 'pipelines' && (
           <div className="space-y-8 animate-fade-in">
             
-            {/* Pipeline Launcher */}
-            <div className="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-strong)] shadow-md">
-              <div className="flex items-center gap-2 mb-2">
-                <GitBranch size={16} className="text-[var(--text-primary)]" />
-                <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-wide">
-                  Deploy Interconnected Multi-Phase Pipeline
-                </h3>
-              </div>
-              <p className="text-xs text-[var(--text-secondary)] mb-5 max-w-3xl">
-                Agents collaborate in sequential phases: Phase 1 (Research) passes its findings into Phase 2 (Builder), which feeds into Phase 3 (Sandbox QA), concluding with Phase 4 (Senior Audit).
-              </p>
+            {/* Custom Flow Builder & Pipeline Launcher */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-strong)] shadow-md space-y-6">
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <GitBranch size={18} className="text-[var(--text-primary)]" />
+                    <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-wide">
+                      Multi-Phase Flow Builder & Orchestrator
+                    </h3>
+                  </div>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-3xl">
+                    Build custom multi-agent workflows with sequential handovers, ground each phase with uploaded documents and external links, and save reusable flow templates for future missions.
+                  </p>
+                </div>
 
-              <form onSubmit={handlePipelineSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-3.5">
-                <div className="md:col-span-4">
-                  <input
-                    type="text"
-                    placeholder="Pipeline Project Title (e.g. Algorithmic Volatility Scanner)"
-                    value={pipelineTitle}
-                    onChange={e => setPipelineTitle(e.target.value)}
-                    className="w-full bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-xl p-2.5 text-xs focus:outline-none focus:border-[var(--border-strong)]"
-                    required
-                  />
+                {/* Preset & Template Selector */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[0.68rem] font-bold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1">
+                    <Bookmark size={11} /> Flow Template:
+                  </span>
+                  <select
+                    value={selectedPresetId}
+                    onChange={e => handleSelectPreset(e.target.value)}
+                    className="bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-xl py-1.5 px-3 text-xs focus:outline-none focus:border-[var(--border-strong)] font-medium cursor-pointer"
+                  >
+                    <optgroup label="Quick Built-in Presets">
+                      {(presets && presets.length > 0 ? presets : [
+                        { id: 'preset-fullstack', name: '⚡ Full-Stack Team (4-Phase)' },
+                        { id: 'preset-research', name: '🔍 Deep Research & Whitepaper (3-Phase)' },
+                        { id: 'preset-bugfix', name: '🛠️ Bug Root Cause & Patch (3-Phase)' }
+                      ]).map(p => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </optgroup>
+                    {templates && templates.length > 0 && (
+                      <optgroup label="Your Saved Flow Templates">
+                        {templates.map(t => (
+                          <option key={t.id} value={t.id}>⭐ {t.name} ({t.stages?.length || 0} phases)</option>
+                        ))}
+                      </optgroup>
+                    )}
+                    <option value="custom">✏️ Custom Flow...</option>
+                  </select>
+
+                  {templates?.some(t => t.id === selectedPresetId) && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await deleteTemplate(selectedPresetId);
+                        setSelectedPresetId('preset-fullstack');
+                      }}
+                      className="p-1.5 rounded-xl border border-[var(--border-subtle)] text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                      title="Delete this saved template"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
                 </div>
-                <div className="md:col-span-6">
-                  <input
-                    type="text"
-                    placeholder="Specify the full project goal for the multi-agent team..."
-                    value={pipelineGoal}
-                    onChange={e => setPipelineGoal(e.target.value)}
-                    className="w-full bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-xl p-2.5 text-xs focus:outline-none focus:border-[var(--border-strong)]"
-                    required
-                  />
+              </div>
+
+              <form onSubmit={handlePipelineSubmit} className="space-y-5">
+                
+                {/* Row 1: Title & Main Goal */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                  <div className="md:col-span-5">
+                    <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
+                      Pipeline Project Title
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="E.g., Microservice Event Bus & Chaos Validation"
+                      value={pipelineTitle}
+                      onChange={e => setPipelineTitle(e.target.value)}
+                      className="w-full bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-xl p-2.5 text-xs focus:outline-none focus:border-[var(--border-strong)]"
+                      required
+                    />
+                  </div>
+
+                  <div className="md:col-span-7">
+                    <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
+                      Comprehensive Project Goal & Instructions
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Specify exact objective, technical constraints, expected architecture, deliverables, and guidelines..."
+                      value={pipelineGoal}
+                      onChange={e => setPipelineGoal(e.target.value)}
+                      className="w-full bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-xl p-2.5 text-xs focus:outline-none focus:border-[var(--border-strong)] resize-none"
+                      required
+                    />
+                  </div>
                 </div>
-                <div className="md:col-span-2">
+
+                {/* Row 2: Grounding with Documents & MCP Links */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
+                  
+                  {/* Documents & PDFs attachment */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
+                        <FileText size={13} className="text-amber-400" />
+                        <span>Ground Workflow in Documents ({pipelineDocIds.length})</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => pipelineDocInputRef.current?.click()}
+                        disabled={isUploadingDoc}
+                        className="text-[0.68rem] text-[var(--text-primary)] hover:text-amber-400 flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        {isUploadingDoc ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                        <span>Upload File</span>
+                      </button>
+                      <input
+                        ref={pipelineDocInputRef}
+                        type="file"
+                        accept=".pdf,.docx,.txt,.csv,.xlsx,.md"
+                        className="hidden"
+                        onChange={handleDirectPipelineDocUpload}
+                      />
+                    </div>
+
+                    {availableDocs.length > 0 ? (
+                      <div className="max-h-24 overflow-y-auto space-y-1 pr-1 border border-[var(--border-subtle)] rounded-xl p-1.5 bg-[var(--bg-surface)]">
+                        {availableDocs.map(doc => {
+                          const isSelected = pipelineDocIds.includes(doc.id);
+                          return (
+                            <button
+                              key={doc.id}
+                              type="button"
+                              onClick={() => togglePipelineDoc(doc.id)}
+                              className={`w-full text-left p-1 rounded-lg text-[0.66rem] flex items-center justify-between transition-all cursor-pointer border ${
+                                isSelected
+                                  ? 'bg-amber-500/10 border-amber-500/40 text-amber-300 font-medium'
+                                  : 'bg-transparent border-transparent text-[var(--text-secondary)] hover:border-[var(--border-subtle)]'
+                              }`}
+                            >
+                              <div className="flex items-center gap-1.5 truncate mr-2">
+                                <FileText size={11} className={isSelected ? 'text-amber-400' : 'text-[var(--text-muted)]'} />
+                                <span className="truncate">{doc.filename}</span>
+                              </div>
+                              <span className="shrink-0 text-[0.6rem] opacity-75">
+                                {isSelected ? 'Attached ✓' : '+ Attach'}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-[0.66rem] text-[var(--text-muted)] italic py-1">
+                        No documents uploaded yet. Click Upload File to add PDFs or datasets.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* External Context & MCP Links */}
+                  <div>
+                    <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 flex items-center gap-1.5">
+                      <Link2 size={13} className="text-cyan-400" />
+                      <span>External Context & MCP Endpoints ({pipelineContextLinks.length})</span>
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="mcp://... or https://api.docs or schema URL"
+                        value={pipelineNewLink}
+                        onChange={e => setPipelineNewLink(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddPipelineLink();
+                          }
+                        }}
+                        className="flex-1 bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-xl p-2 text-xs focus:outline-none focus:border-[var(--border-strong)]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddPipelineLink}
+                        className="px-3 py-2 rounded-xl bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] cursor-pointer"
+                      >
+                        Add
+                      </button>
+                    </div>
+
+                    {pipelineContextLinks.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {pipelineContextLinks.map(link => (
+                          <span
+                            key={link}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-[0.66rem] text-cyan-300 max-w-[240px] truncate"
+                          >
+                            <span className="truncate">{link}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePipelineLink(link)}
+                              className="text-cyan-400 hover:text-white cursor-pointer ml-0.5"
+                            >
+                              <X size={10} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* Row 3: Interactive Stage-by-Stage Flow Editor */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Layers size={15} className="text-[var(--text-primary)]" />
+                      <span className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
+                        Configured Flow Stages ({pipelineStages.length})
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddPipelineStage}
+                      className="px-3 py-1.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5 cursor-pointer transition-colors"
+                    >
+                      <Plus size={13} />
+                      <span>Add Custom Phase</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {pipelineStages.map((stage, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-2.5 transition-all shadow-xs"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                          
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span className="shrink-0 px-2 py-0.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[0.66rem] font-bold text-[var(--text-secondary)]">
+                              Phase {idx + 1}
+                            </span>
+                            <input
+                              type="text"
+                              value={stage.title}
+                              onChange={e => handleUpdatePipelineStage(idx, 'title', e.target.value)}
+                              placeholder={`Phase ${idx + 1} Title`}
+                              className="flex-1 bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-[var(--border-strong)] min-w-[160px]"
+                              required
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <select
+                              value={stage.agent_id || ''}
+                              onChange={e => {
+                                const agId = e.target.value;
+                                const selectedAg = safeAgents.find(a => a.id === agId);
+                                handleUpdatePipelineStage(idx, 'agent_id', agId);
+                                if (selectedAg) {
+                                  handleUpdatePipelineStage(idx, 'role', selectedAg.role || 'builder');
+                                }
+                              }}
+                              className="bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-[var(--border-strong)] cursor-pointer"
+                            >
+                              {safeAgents.map(a => (
+                                <option key={a.id} value={a.id}>
+                                  {a.name} ({a.role?.toUpperCase()})
+                                </option>
+                              ))}
+                            </select>
+
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePipelineStage(idx)}
+                              disabled={pipelineStages.length <= 1}
+                              title="Delete this phase"
+                              className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+
+                        </div>
+
+                        <div>
+                          <textarea
+                            rows={2}
+                            value={stage.instruction}
+                            onChange={e => handleUpdatePipelineStage(idx, 'instruction', e.target.value)}
+                            placeholder="Phase objective: what should this agent research, build, test, or review?"
+                            className="w-full bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-lg p-2 text-xs focus:outline-none focus:border-[var(--border-strong)] resize-none"
+                            required
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Row 4: Save As Reusable Template & Launch */}
+                <div className="pt-2 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs text-[var(--text-secondary)] select-none">
+                      <input
+                        type="checkbox"
+                        checked={saveAsTemplate}
+                        onChange={e => {
+                          setSaveAsTemplate(e.target.checked);
+                          if (e.target.checked && !templateName) {
+                            setTemplateName(pipelineTitle || 'Custom Flow');
+                          }
+                        }}
+                        className="rounded border-[var(--border-subtle)] accent-[var(--accent)] cursor-pointer"
+                      />
+                      <span className="font-medium text-[var(--text-primary)]">Save this flow as reusable template</span>
+                    </label>
+
+                    {saveAsTemplate && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          placeholder="Template Name (e.g. Code Audit Flow)"
+                          value={templateName}
+                          onChange={e => setTemplateName(e.target.value)}
+                          className="bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-[var(--border-strong)]"
+                          required={saveAsTemplate}
+                        />
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!templateName.trim()) return;
+                            await saveTemplate(templateName.trim(), templateDescription || '', pipelineStages);
+                            setSaveAsTemplate(false);
+                            setTemplateName('');
+                          }}
+                          className="px-2.5 py-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] text-[0.68rem] text-[var(--text-primary)] cursor-pointer"
+                        >
+                          Save Only
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   <button
                     type="submit"
-                    disabled={loading || !pipelineTitle.trim() || !pipelineGoal.trim()}
-                    className="w-full h-full min-h-[38px] rounded-xl bg-[var(--accent)] hover:opacity-90 disabled:opacity-50 text-xs font-semibold text-[var(--primary-foreground)] flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md"
+                    disabled={loading || !pipelineTitle.trim() || !pipelineGoal.trim() || pipelineStages.length === 0}
+                    className="py-2.5 px-6 rounded-xl bg-[var(--accent)] hover:opacity-90 disabled:opacity-50 text-xs font-semibold text-[var(--primary-foreground)] flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md self-end sm:self-auto"
                   >
-                    <Sparkles size={14} />
-                    <span>Launch Team</span>
+                    {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                    <span>Deploy Multi-Agent Workflow</span>
                   </button>
+
                 </div>
+
               </form>
             </div>
 
             {/* Existing Pipelines List */}
             <div className="space-y-4">
-              <h3 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
-                Active & Completed Workflows ({safePipelines.length})
-              </h3>
+              <div className="flex items-center justify-between pb-1">
+                <span className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
+                  Active & Completed Workflows ({safePipelines.length})
+                </span>
+                <span className="text-[0.72rem] text-[var(--text-muted)]">Live multi-phase telemetry</span>
+              </div>
 
               {safePipelines.length === 0 ? (
                 <div className="p-8 text-center rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)]">
                   No multi-agent pipelines initiated yet. Launch your first collaborative workflow above.
                 </div>
               ) : (
-                safePipelines.map(pipe => (
-                  <div key={pipe.id} className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-3">
-                      <div>
-                        <h4 className="text-sm font-bold text-[var(--text-primary)]">{pipe.title}</h4>
-                        <p className="text-xs text-[var(--text-secondary)] mt-0.5">{pipe.goal}</p>
-                      </div>
-                      <span className={`text-[0.68rem] px-2.5 py-0.5 rounded-full font-semibold border self-start sm:self-center ${
-                        pipe.status === 'completed'
-                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                          : pipe.status === 'running'
-                          ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 animate-pulse'
-                          : 'bg-zinc-500/10 border-zinc-500/30 text-zinc-400'
-                      }`}>
-                        {pipe.status.toUpperCase()}
-                      </span>
-                    </div>
+                safePipelines.map(pipe => {
+                  const isCompleted = pipe.status === 'completed';
+                  const isRunning = pipe.status === 'running' || pipe.status === 'pending';
+                  const activeTabForPipe = pipelineActiveTabs[pipe.id] ?? 'final';
+                  const stagesList = Array.isArray(pipe.stages) ? pipe.stages : [];
 
-                    {/* Stepper Visualization */}
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-1">
-                      {(Array.isArray(pipe.stages) ? pipe.stages : []).map((stage, idx) => {
-                        const isDone = pipe.current_stage > idx || pipe.status === 'completed';
-                        const isCurrent = pipe.current_stage === idx && pipe.status === 'running';
-
-                        return (
-                          <div
-                            key={idx}
-                            className={`p-3 rounded-xl border text-xs flex flex-col justify-between ${
-                              isDone
-                                ? 'bg-emerald-500/5 border-emerald-500/25 text-emerald-300'
-                                : isCurrent
-                                ? 'bg-amber-500/10 border-amber-500/40 text-amber-300 animate-pulse'
-                                : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-muted)]'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-[0.65rem] font-bold uppercase tracking-wider">Phase {idx + 1}</span>
-                              {isDone ? <Check size={12} className="text-emerald-400" /> : isCurrent ? <Loader2 size={12} className="animate-spin text-amber-400" /> : null}
-                            </div>
-                            <span className="font-semibold text-[var(--text-primary)] text-[0.74rem] truncate">{stage.title}</span>
+                  return (
+                    <div
+                      key={pipe.id}
+                      className="p-5 sm:p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-4 shadow-xs transition-all"
+                    >
+                      {/* Workflow Card Header */}
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-[var(--border-subtle)] pb-3">
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-bold text-[var(--text-primary)] truncate">{pipe.title}</h4>
+                          <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">{pipe.goal}</p>
+                          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                            <span className="text-[0.68rem] text-[var(--text-muted)]">
+                              Started: {pipe.created_at}
+                            </span>
+                            {pipe.document_ids && pipe.document_ids.length > 0 && (
+                              <span className="inline-flex items-center gap-0.5 text-amber-400 text-[0.62rem] bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30">
+                                <FileText size={9} /> {pipe.document_ids.length} docs attached
+                              </span>
+                            )}
+                            {pipe.context_links && pipe.context_links.length > 0 && (
+                              <span className="inline-flex items-center gap-0.5 text-cyan-400 text-[0.62rem] bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/30">
+                                <Link2 size={9} /> {pipe.context_links.length} external links
+                              </span>
+                            )}
                           </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Final Output Deliverable */}
-                    {pipe.final_output && (
-                      <div className="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
-                        <span className="text-[0.68rem] font-bold uppercase tracking-wider text-[var(--text-secondary)] block mb-2">
-                          Final Synthesized Deliverable
-                        </span>
-                        <div className="text-xs text-[var(--text-primary)] font-mono whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
-                          {pipe.final_output}
                         </div>
+
+                        <span className={`text-[0.68rem] px-2.5 py-0.5 rounded-full font-semibold border self-start shrink-0 ${
+                          isCompleted
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                            : isRunning
+                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 animate-pulse'
+                            : 'bg-zinc-500/10 border-zinc-500/30 text-zinc-400'
+                        }`}>
+                          {pipe.status.toUpperCase()}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                ))
+
+                      {/* Interactive Stepper Navigation (Clickable Tabs) */}
+                      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                        
+                        {/* Final Synthesis Tab */}
+                        <button
+                          type="button"
+                          onClick={() => setPipelineActiveTabs(prev => ({ ...prev, [pipe.id]: 'final' }))}
+                          className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer border ${
+                            activeTabForPipe === 'final'
+                              ? 'bg-[var(--accent)] text-[var(--primary-foreground)] border-transparent shadow-sm'
+                              : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
+                          }`}
+                        >
+                          <Sparkles size={13} />
+                          <span>Final Deliverable</span>
+                        </button>
+
+                        {/* Each Phase Tab */}
+                        {stagesList.map((stage, idx) => {
+                          const isDone = pipe.current_stage > idx || isCompleted;
+                          const isCurrent = pipe.current_stage === idx && isRunning;
+                          const isSelected = activeTabForPipe === idx;
+
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setPipelineActiveTabs(prev => ({ ...prev, [pipe.id]: idx }))}
+                              className={`px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 shrink-0 transition-all cursor-pointer border ${
+                                isSelected
+                                  ? 'bg-[var(--accent)] text-[var(--primary-foreground)] font-semibold border-transparent shadow-sm'
+                                  : isDone
+                                  ? 'bg-emerald-500/5 border-emerald-500/25 text-emerald-300 hover:border-emerald-500/40'
+                                  : isCurrent
+                                  ? 'bg-amber-500/10 border-amber-500/35 text-amber-300 animate-pulse'
+                                  : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-strong)]'
+                              }`}
+                            >
+                              <span>Phase {idx + 1}: {stage.title ? stage.title.replace(/^Phase \d+:\s*/, '') : `Stage ${idx + 1}`}</span>
+                              {isDone ? (
+                                <Check size={12} className={isSelected ? 'text-[var(--primary-foreground)]' : 'text-emerald-400'} />
+                              ) : isCurrent ? (
+                                <Loader2 size={12} className="animate-spin text-amber-400" />
+                              ) : null}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Structured Deliverable View Panel */}
+                      <div className="rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] overflow-hidden">
+                        
+                        {/* CASE 1: FINAL DELIVERABLE TAB */}
+                        {activeTabForPipe === 'final' && (
+                          <div className="p-4 sm:p-5 space-y-4">
+                            <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2.5">
+                              <span className="text-[0.7rem] font-bold uppercase tracking-wider text-[var(--text-secondary)] flex items-center gap-1.5">
+                                <Sparkles size={13} className="text-amber-400" />
+                                <span>Executive Synthesis & Full Deliverable</span>
+                              </span>
+
+                              {pipe.final_output && (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopyPipelineDeliverable(pipe.id, pipe.final_output!)}
+                                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] text-[0.68rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                                  >
+                                    {copiedPipelineId === pipe.id ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+                                    <span>{copiedPipelineId === pipe.id ? 'Copied' : 'Copy'}</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDownloadDeliverable(pipe.title, pipe.final_output!)}
+                                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] text-[0.68rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                                  >
+                                    <Download size={11} />
+                                    <span>Download .md</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            {pipe.final_output ? (
+                              <div className="prose prose-invert prose-xs max-w-none text-xs text-[var(--text-primary)] leading-relaxed max-h-96 overflow-y-auto pr-2">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {pipe.final_output}
+                                </ReactMarkdown>
+                              </div>
+                            ) : (
+                              <div className="py-8 text-center text-xs text-[var(--text-muted)] italic">
+                                {isRunning ? 'Workflow in progress. Full executive deliverable will synthesize upon completion of all phases...' : 'No final output generated.'}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* CASE 2: INDIVIDUAL PHASE TAB */}
+                        {typeof activeTabForPipe === 'number' && stagesList[activeTabForPipe] && (() => {
+                          const phaseData = stagesList[activeTabForPipe];
+                          const isPhaseDone = phaseData.status === 'completed' || (pipe.current_stage > activeTabForPipe);
+                          const isPhaseRunning = pipe.current_stage === activeTabForPipe && isRunning;
+
+                          return (
+                            <div className="p-4 sm:p-5 space-y-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-2.5">
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-[var(--text-primary)]">
+                                      Phase {activeTabForPipe + 1}: {phaseData.title}
+                                    </span>
+                                    <span className="text-[0.65rem] px-2 py-0.5 rounded-full bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-secondary)] font-mono">
+                                      Role: {phaseData.role ? phaseData.role.toUpperCase() : 'BUILDER'}
+                                    </span>
+                                  </div>
+                                  <p className="text-[0.72rem] text-[var(--text-muted)] mt-1">
+                                    Objective: {phaseData.instruction}
+                                  </p>
+                                </div>
+
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className={`text-[0.65rem] px-2 py-0.5 rounded-full font-semibold border ${
+                                    isPhaseDone
+                                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                                      : isPhaseRunning
+                                      ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 animate-pulse'
+                                      : 'bg-zinc-500/10 border-zinc-500/30 text-zinc-400'
+                                  }`}>
+                                    {isPhaseDone ? 'Completed ✅' : isPhaseRunning ? 'Running ⚡' : 'Queued ⏳'}
+                                  </span>
+
+                                  {phaseData.result && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleCopyPipelineDeliverable(`${pipe.id}-phase-${activeTabForPipe}`, phaseData.result!)}
+                                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] text-[0.68rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                                    >
+                                      {copiedPipelineId === `${pipe.id}-phase-${activeTabForPipe}` ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+                                      <span>{copiedPipelineId === `${pipe.id}-phase-${activeTabForPipe}` ? 'Copied' : 'Copy'}</span>
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Phase Deliverable Output */}
+                              {phaseData.result ? (
+                                <div className="prose prose-invert prose-xs max-w-none text-xs text-[var(--text-primary)] leading-relaxed max-h-80 overflow-y-auto pr-2">
+                                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    {phaseData.result}
+                                  </ReactMarkdown>
+                                </div>
+                              ) : (
+                                <div className="py-6 text-center text-xs text-[var(--text-muted)] italic">
+                                  {isPhaseRunning ? 'Agent is actively synthesizing phase output in background...' : 'Waiting for preceding phase handover...'}
+                                </div>
+                              )}
+
+                              {/* Python Sandbox Artifact Output for this stage */}
+                              {phaseData.artifacts?.sandbox_execution && (
+                                <div className="p-3 rounded-xl bg-black border border-white/10 font-mono text-xs">
+                                  <div className="flex items-center justify-between text-[0.68rem] text-zinc-400 mb-1 border-b border-white/5 pb-1">
+                                    <span className="font-semibold text-emerald-400 flex items-center gap-1.5">
+                                      <Zap size={11} /> Python Sandbox Execution ({phaseData.artifacts.sandbox_execution.execution_time_ms}ms)
+                                    </span>
+                                    <span>Exit Code: {phaseData.artifacts.sandbox_execution.exit_code}</span>
+                                  </div>
+                                  {phaseData.artifacts.sandbox_execution.stdout && (
+                                    <pre className="text-zinc-200 whitespace-pre-wrap m-0 mt-1">{phaseData.artifacts.sandbox_execution.stdout}</pre>
+                                  )}
+                                  {phaseData.artifacts.sandbox_execution.stderr && (
+                                    <pre className="text-red-400 whitespace-pre-wrap m-0 mt-1">{phaseData.artifacts.sandbox_execution.stderr}</pre>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Live Search Citations for this stage */}
+                              {phaseData.artifacts?.search_citations && phaseData.artifacts.search_citations.length > 0 && (
+                                <div className="space-y-1.5 pt-1">
+                                  <span className="text-[0.68rem] font-bold uppercase tracking-wider text-[var(--text-muted)]">Verified Web Citations</span>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {phaseData.artifacts.search_citations.map((c, i) => (
+                                      <a
+                                        key={i}
+                                        href={c.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="p-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] text-[0.68rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] truncate flex items-center gap-1.5 transition-colors"
+                                      >
+                                        <ExternalLink size={11} className="shrink-0" />
+                                        <span className="truncate">{c.title}</span>
+                                      </a>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
 
