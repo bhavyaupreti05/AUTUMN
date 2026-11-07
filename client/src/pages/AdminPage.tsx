@@ -32,11 +32,11 @@ export function LegacyTemporaryUserGenerator() {
   const copyCredential = async (value: string) => { await copyText(value); };
 
   return <>
-    <button type="button" onClick={() => { setIsOpen(true); setCredentials(null); setError(''); }} className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-white hover:bg-[var(--accent-hover)]"><WandSparkles size={15} />Generate temporary login</button>
+    <button type="button" onClick={() => { setIsOpen(true); setCredentials(null); setError(''); }} className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--accent-hover)]"><WandSparkles size={15} />Generate temporary login</button>
     {isOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setIsOpen(false)}><div role="dialog" aria-modal="true" aria-label="Generate temporary login" className="w-full max-w-md rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
       <div className="flex items-start justify-between gap-4"><div><h2 className="text-xl font-bold text-[var(--text-primary)]">Generate temporary login</h2><p className="mt-1 text-sm text-[var(--text-secondary)]">Create an approved account that expires at the time you choose.</p></div><button type="button" onClick={() => setIsOpen(false)} aria-label="Close" className="p-2 text-[var(--text-muted)]">×</button></div>
       {error && <div className="mt-4 rounded-[var(--radius-md)] border border-[rgba(250,82,82,0.35)] bg-[rgba(250,82,82,0.1)] p-3 text-sm text-[var(--error)]">{error}</div>}
-      {!credentials ? <form onSubmit={generate} className="mt-5 space-y-4"><label className="block text-sm font-medium text-[var(--text-primary)]">Email domain<input required value={domain} onChange={(event) => setDomain(event.target.value)} placeholder="example.com" className="mt-2 w-full rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-3 text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" /><span className="mt-1 block text-xs font-normal text-[var(--text-muted)]">The server will generate a unique address on this domain.</span></label><label className="block text-sm font-medium text-[var(--text-primary)]">Login available for<input required type="number" min="5" max="43200" value={durationMinutes} onChange={(event) => setDurationMinutes(event.target.value)} className="mt-2 w-full rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-3 text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" /><span className="mt-1 block text-xs font-normal text-[var(--text-muted)]">5 minutes to 30 days. Expiry is enforced at login.</span></label><button type="submit" disabled={isGenerating} className="inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{isGenerating ? 'Generating...' : 'Generate credentials'}</button></form> : <div className="mt-5 space-y-3"><div className="rounded-[var(--radius-md)] border border-[rgba(234,166,85,0.4)] bg-[rgba(234,166,85,0.08)] p-4 text-sm text-[var(--text-primary)]"><p className="font-semibold text-[var(--accent)]">Copy these credentials now</p><p className="mt-1 text-xs text-[var(--text-secondary)]">The password will not be shown again after closing this dialog.</p>{[['Email', credentials.username], ['Password', credentials.password], ['Expires', new Date(credentials.expires_at).toLocaleString()]].map(([label, value]) => <div key={label} className="mt-3 flex items-center gap-2"><span className="w-20 shrink-0 text-xs text-[var(--text-muted)]">{label}</span><code className="min-w-0 flex-1 break-all text-sm">{value}</code>{label !== 'Expires' && <button type="button" title={`Copy ${label}`} onClick={() => copyCredential(value)} className="p-1.5 text-[var(--accent)]"><Copy size={15} /></button>}</div>)}</div><button type="button" onClick={() => setIsOpen(false)} className="w-full rounded-[var(--radius-md)] bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white">Done</button></div>}
+      {!credentials ? <form onSubmit={generate} className="mt-5 space-y-4"><label className="block text-sm font-medium text-[var(--text-primary)]">Email domain<input required value={domain} onChange={(event) => setDomain(event.target.value)} placeholder="example.com" className="mt-2 w-full rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-3 text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" /><span className="mt-1 block text-xs font-normal text-[var(--text-muted)]">The server will generate a unique address on this domain.</span></label><label className="block text-sm font-medium text-[var(--text-primary)]">Login available for<input required type="number" min="5" max="43200" value={durationMinutes} onChange={(event) => setDurationMinutes(event.target.value)} className="mt-2 w-full rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-3 text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" /><span className="mt-1 block text-xs font-normal text-[var(--text-muted)]">5 minutes to 30 days. Expiry is enforced at login.</span></label><button type="submit" disabled={isGenerating} className="inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[var(--primary-foreground)] disabled:opacity-50">{isGenerating ? 'Generating...' : 'Generate credentials'}</button></form> : <div className="mt-5 space-y-3"><div className="rounded-[var(--radius-md)] border border-[rgba(234,166,85,0.4)] bg-[rgba(234,166,85,0.08)] p-4 text-sm text-[var(--text-primary)]"><p className="font-semibold text-[var(--accent)]">Copy these credentials now</p><p className="mt-1 text-xs text-[var(--text-secondary)]">The password will not be shown again after closing this dialog.</p>{[['Email', credentials.username], ['Password', credentials.password], ['Expires', new Date(credentials.expires_at).toLocaleString()]].map(([label, value]) => <div key={label} className="mt-3 flex items-center gap-2"><span className="w-20 shrink-0 text-xs text-[var(--text-muted)]">{label}</span><code className="min-w-0 flex-1 break-all text-sm">{value}</code>{label !== 'Expires' && <button type="button" title={`Copy ${label}`} onClick={() => copyCredential(value)} className="p-1.5 text-[var(--accent)]"><Copy size={15} /></button>}</div>)}</div><button type="button" onClick={() => setIsOpen(false)} className="w-full rounded-[var(--radius-md)] bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[var(--primary-foreground)]">Done</button></div>}
     </div></div>}
   </>;
 }
@@ -67,7 +67,7 @@ function ClearTemporaryUserGenerator() {
   };
 
   return <>
-    <button type="button" onClick={() => { setIsOpen(true); setCredentials(null); setError(''); }} className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-white hover:bg-[var(--accent-hover)]"><WandSparkles size={15} />Generate temporary login</button>
+    <button type="button" onClick={() => { setIsOpen(true); setCredentials(null); setError(''); }} className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--accent-hover)]"><WandSparkles size={15} />Generate temporary login</button>
     {isOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setIsOpen(false)}><div role="dialog" aria-modal="true" aria-label="Generate temporary login" className="w-full max-w-lg rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
       <div className="flex items-start justify-between gap-4"><div><h2 className="text-xl font-bold text-[var(--text-primary)]">Generate temporary login</h2><p className="mt-1 text-sm text-[var(--text-secondary)]">Create a time-limited login for a user on a domain you control.</p></div><button type="button" onClick={() => setIsOpen(false)} aria-label="Close" className="p-2 text-[var(--text-muted)]">×</button></div>
       {error && <div className="mt-4 rounded-[var(--radius-md)] border border-[rgba(250,82,82,0.35)] bg-[rgba(250,82,82,0.1)] p-3 text-sm text-[var(--error)]">{error}</div>}
@@ -75,8 +75,8 @@ function ClearTemporaryUserGenerator() {
         <div className="rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-3"><p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Generated login preview</p><p className="mt-1 font-mono text-sm text-[var(--accent)]">{previewEmail}</p><p className="mt-1 text-xs text-[var(--text-muted)]">This is a login ID format, not a real mailbox.</p></div>
         <label className="block text-sm font-medium text-[var(--text-primary)]">Email domain <span className="text-[var(--error)]">*</span><div className="mt-2 flex items-center rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] focus-within:border-[var(--accent)]"><span className="pl-3 text-[var(--text-muted)]">@</span><input required value={domain} onChange={(event) => setDomain(event.target.value)} placeholder="company.com" className="min-w-0 flex-1 bg-transparent p-3 pl-1 text-[var(--text-primary)] outline-none" /></div><span className="mt-1 block text-xs font-normal text-[var(--text-muted)]">Enter only the domain, without `@`, for example `company.com`.</span></label>
         <div><label className="block text-sm font-medium text-[var(--text-primary)]">Login available for <span className="text-[var(--error)]">*</span></label><div className="mt-2 grid grid-cols-[1fr_1fr] gap-2"><input required type="number" min="1" value={durationValue} onChange={(event) => setDurationValue(event.target.value)} className="w-full rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-3 text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" /><select value={durationUnit} onChange={(event) => setDurationUnit(event.target.value as typeof durationUnit)} className="w-full rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-3 text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"><option value="minutes">Minutes</option><option value="hours">Hours</option><option value="days">Days</option></select></div><p className="mt-1 text-xs text-[var(--text-muted)]">Account expires after {Number.isFinite(totalMinutes) ? `${durationValue} ${durationUnit}` : 'the selected duration'} and cannot log in afterward.</p></div>
-        <button type="submit" disabled={isGenerating || !cleanDomain || !Number.isFinite(totalMinutes) || totalMinutes < 5 || totalMinutes > 43200} className="inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">{isGenerating ? 'Generating...' : 'Generate credentials'}</button>
-      </form> : <div className="mt-5 space-y-3"><div className="rounded-[var(--radius-md)] border border-[rgba(234,166,85,0.4)] bg-[rgba(234,166,85,0.08)] p-4 text-sm text-[var(--text-primary)]"><p className="font-semibold text-[var(--accent)]">Credentials generated</p><p className="mt-1 text-xs text-[var(--text-secondary)]">Copy the email and password now. The password will not be shown again after closing.</p>{[['Email', credentials.username], ['Password', credentials.password], ['Expires', new Date(credentials.expires_at).toLocaleString()]].map(([label, value]) => <div key={label} className="mt-3 flex items-center gap-2"><span className="w-20 shrink-0 text-xs text-[var(--text-muted)]">{label}</span><code className="min-w-0 flex-1 break-all text-sm">{value}</code>{label !== 'Expires' && <button type="button" title={`Copy ${label}`} onClick={() => copyText(value)} className="p-1.5 text-[var(--accent)]"><Copy size={15} /></button>}</div>)}</div><button type="button" onClick={() => setIsOpen(false)} className="w-full rounded-[var(--radius-md)] bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white">Done</button></div>}
+        <button type="submit" disabled={isGenerating || !cleanDomain || !Number.isFinite(totalMinutes) || totalMinutes < 5 || totalMinutes > 43200} className="inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[var(--primary-foreground)] disabled:cursor-not-allowed disabled:opacity-50">{isGenerating ? 'Generating...' : 'Generate credentials'}</button>
+      </form> : <div className="mt-5 space-y-3"><div className="rounded-[var(--radius-md)] border border-[rgba(234,166,85,0.4)] bg-[rgba(234,166,85,0.08)] p-4 text-sm text-[var(--text-primary)]"><p className="font-semibold text-[var(--accent)]">Credentials generated</p><p className="mt-1 text-xs text-[var(--text-secondary)]">Copy the email and password now. The password will not be shown again after closing.</p>{[['Email', credentials.username], ['Password', credentials.password], ['Expires', new Date(credentials.expires_at).toLocaleString()]].map(([label, value]) => <div key={label} className="mt-3 flex items-center gap-2"><span className="w-20 shrink-0 text-xs text-[var(--text-muted)]">{label}</span><code className="min-w-0 flex-1 break-all text-sm">{value}</code>{label !== 'Expires' && <button type="button" title={`Copy ${label}`} onClick={() => copyText(value)} className="p-1.5 text-[var(--accent)]"><Copy size={15} /></button>}</div>)}</div><button type="button" onClick={() => setIsOpen(false)} className="w-full rounded-[var(--radius-md)] bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[var(--primary-foreground)]">Done</button></div>}
     </div></div>}
   </>;
 }
@@ -180,7 +180,7 @@ export function AdminPage() {
             </button>
             <button
               onClick={() => navigate('/')}
-              className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-4 py-2 rounded-[var(--radius-md)] transition-colors inline-flex items-center gap-2"
+              className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--primary-foreground)] font-semibold px-4 py-2 rounded-[var(--radius-md)] transition-colors inline-flex items-center gap-2"
             >
               <ArrowLeft size={16} />
               Return to Chat
@@ -247,7 +247,7 @@ export function AdminPage() {
             Back to Chat
           </button>
           <button
-            className={`inline-flex items-center gap-2 rounded-[var(--radius-md)] border px-4 py-2 font-medium transition-all ${activeTab === 'bots' ? 'border-[var(--accent)] bg-[var(--accent)] text-white shadow-md shadow-[color-mix(in_srgb,var(--accent)_25%,transparent)]' : 'border-[color-mix(in_srgb,var(--accent)_45%,var(--border-subtle))] bg-[var(--bg-surface)] text-[var(--accent)] hover:-translate-y-0.5 hover:bg-[var(--bg-surface-hover)] hover:shadow-md'}`}
+            className={`inline-flex items-center gap-2 rounded-[var(--radius-md)] border px-4 py-2 font-medium transition-all ${activeTab === 'bots' ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--primary-foreground)] font-semibold shadow-md shadow-[color-mix(in_srgb,var(--accent)_25%,transparent)]' : 'border-[color-mix(in_srgb,var(--accent)_45%,var(--border-subtle))] bg-[var(--bg-surface)] text-[var(--accent)] hover:-translate-y-0.5 hover:bg-[var(--bg-surface-hover)] hover:shadow-md'}`}
             onClick={() => setActiveTab('bots')}
             title="Open Custom Bots"
           >
@@ -269,7 +269,7 @@ export function AdminPage() {
             className={`pb-3 font-medium transition-colors border-b-2 ${activeTab === 'users' ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
             onClick={() => setActiveTab('users')}
           >
-            User Management {pendingUsers.length > 0 && <span className="ml-2 bg-[var(--accent)] text-white text-xs px-2 py-0.5 rounded-full">{pendingUsers.length}</span>}
+            User Management {pendingUsers.length > 0 && <span className="ml-2 bg-[var(--accent)] text-[var(--primary-foreground)] font-bold text-xs px-2 py-0.5 rounded-full">{pendingUsers.length}</span>}
           </button>
           <button
             className={`pb-3 font-medium transition-colors border-b-2 ${activeTab === 'security' ? 'border-[var(--error)] text-[var(--error)]' : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
@@ -293,7 +293,7 @@ export function AdminPage() {
                 key={page}
                 type="button"
                 onClick={() => setActiveAnalyticsPage(page)}
-                className={`rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium transition-colors ${activeAnalyticsPage === page ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] hover:text-[var(--text-primary)]'}`}
+                className={`rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium transition-colors ${activeAnalyticsPage === page ? 'bg-[var(--accent)] text-[var(--primary-foreground)] font-semibold shadow-sm' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] hover:text-[var(--text-primary)]'}`}
               >
                 {label}
               </button>
@@ -590,10 +590,10 @@ export function AdminPage() {
                 key={page}
                 type="button"
                 onClick={() => setActiveUserTab(page)}
-                className={`rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium transition-colors ${activeUserTab === page ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] hover:text-[var(--text-primary)]'}`}
+                className={`rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium transition-colors ${activeUserTab === page ? 'bg-[var(--accent)] text-[var(--primary-foreground)] font-semibold shadow-sm' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] hover:text-[var(--text-primary)]'}`}
               >
                 {label}
-                {page === 'pending' && pendingUsers.length > 0 && <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${activeUserTab === page ? 'bg-white text-[var(--accent)]' : 'bg-[var(--accent)] text-white'}`}>{pendingUsers.length}</span>}
+                {page === 'pending' && pendingUsers.length > 0 && <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${activeUserTab === page ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] font-bold' : 'bg-[var(--accent)] text-[var(--primary-foreground)] font-bold'}`}>{pendingUsers.length}</span>}
               </button>
             ))}
           </div>
@@ -614,7 +614,7 @@ export function AdminPage() {
               <div className="bg-[var(--bg-surface-hover)] px-6 py-4 border-b border-[var(--border-subtle)]">
                 <h3 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                   Pending Approvals
-                  {pendingUsers.length > 0 && <span className="bg-[var(--accent)] text-white text-xs px-2 py-0.5 rounded-full">{pendingUsers.length}</span>}
+                  {pendingUsers.length > 0 && <span className="bg-[var(--accent)] text-[var(--primary-foreground)] font-bold text-xs px-2 py-0.5 rounded-full">{pendingUsers.length}</span>}
                 </h3>
               </div>
               <div className="p-0 overflow-x-auto">
@@ -795,7 +795,7 @@ export function AdminPage() {
               <div className="bg-[var(--bg-surface-hover)] px-6 py-4 border-b border-[var(--border-subtle)]">
                 <h3 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                   Password Reset Requests
-                  {resetRequests.length > 0 && <span className="bg-[var(--accent)] text-white text-xs px-2 py-0.5 rounded-full">{resetRequests.length}</span>}
+                  {resetRequests.length > 0 && <span className="bg-[var(--accent)] text-[var(--primary-foreground)] font-bold text-xs px-2 py-0.5 rounded-full">{resetRequests.length}</span>}
                 </h3>
               </div>
               <div className="p-0 overflow-x-auto">
@@ -914,7 +914,7 @@ export function AdminPage() {
                       {showAdminPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
-                  <button type="button" onClick={issueReset} disabled={!adminPassword || isIssuingResetToken} className="mt-4 flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] p-3 text-white disabled:cursor-not-allowed disabled:opacity-50">
+                  <button type="button" onClick={issueReset} disabled={!adminPassword || isIssuingResetToken} className="mt-4 flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent)] p-3 text-[var(--primary-foreground)] font-semibold disabled:cursor-not-allowed disabled:opacity-50">
                     {isIssuingResetToken && <Loader2 size={16} className="animate-spin" />}
                     {isIssuingResetToken ? 'Issuing link...' : 'Issue one-time link'}
                   </button>

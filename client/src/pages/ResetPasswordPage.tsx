@@ -73,7 +73,7 @@ export function ResetPasswordPage() {
           </div>
           <input type={showPassword ? 'text' : 'password'} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder="Confirm new password" className="w-full rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-3 text-[var(--text-primary)]" required />
           <p className="text-xs text-[var(--text-muted)]">Use 10+ characters, at most 72 UTF-8 bytes. Avoid your username and common passwords.</p>
-          <button type="submit" disabled={isLoading} className="w-full rounded-[var(--radius-md)] bg-[var(--accent)] p-3 font-medium text-white disabled:opacity-50">{isLoading ? 'Processing...' : 'Reset password'}</button>
+          <button type="submit" disabled={isLoading} className="w-full rounded-[var(--radius-md)] bg-[var(--accent)] p-3 font-semibold text-[var(--primary-foreground)] disabled:opacity-50">{isLoading ? 'Processing...' : 'Reset password'}</button>
         </form>
       </div>
     </div>
