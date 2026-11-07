@@ -36,7 +36,25 @@ export function LoginPage() {
           throw new Error(errData?.detail || 'Registration failed');
         }
         
-        setSuccess('Registration successful! Your account is pending admin approval.');
+        // Automatically sign in without needing admin approval
+        const formData = new URLSearchParams();
+        formData.append('username', username);
+        formData.append('password', password);
+
+        const loginRes = await fetch('/auth/login', {
+          credentials: 'include',
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData,
+        });
+
+        if (loginRes.ok) {
+          await login();
+          navigate('/');
+          return;
+        }
+
+        setSuccess('Registration successful! Please sign in with your credentials.');
         setIsLogin(true);
         setIsLoading(false);
         return;

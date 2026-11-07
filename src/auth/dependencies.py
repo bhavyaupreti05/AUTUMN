@@ -53,8 +53,11 @@ def get_current_user(request: Request, token: str | None = Depends(oauth2_scheme
         token = request.cookies.get("access_token")
         
     if not token:
-        from src.auth.db import get_default_user
-        return get_default_user()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     try:
         payload = decode_access_token(token)
@@ -64,14 +67,29 @@ def get_current_user(request: Request, token: str | None = Depends(oauth2_scheme
             if user and user.get("status") == "approved":
                 if payload.get("token_version") is None or payload.get("token_version") == user.get("token_version", 0):
                     return user
+            elif user and user.get("status") == "deactivated":
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="This account has been deactivated by administrator."
+                )
+    except HTTPException:
+        raise
     except Exception:
         pass
 
-    from src.auth.db import get_default_user
-    return get_default_user()
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid or expired session. Please sign in again.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 def require_admin(current_user: dict = Depends(get_current_user)):
     """
-    Open access: All users have full equal access.
+    Ensures the current user is an administrator.
     """
+    if not current_user.get("is_admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required"
+        )
     return current_user

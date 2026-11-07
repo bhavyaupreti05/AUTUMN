@@ -7,18 +7,18 @@ interface AuthContextType {
   isAdmin: boolean;
   userId: string | null;
   username: string | null;
-  login: () => void;
-  logout: () => void;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isAdmin, setIsAdmin] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>('Bhavya');
+  const [username, setUsername] = useState<string | null>(null);
 
   const checkAuth = async () => {
     try {
@@ -28,18 +28,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsAuthenticated(true);
         setIsAdmin(data.is_admin === true);
         setUserId(data.id ?? null);
-        setUsername(data.username ?? 'Bhavya');
+        setUsername(data.username ?? null);
       } else {
-        setIsAuthenticated(true);
-        setIsAdmin(true);
+        setIsAuthenticated(false);
+        setIsAdmin(false);
         setUserId(null);
-        setUsername('Bhavya');
+        setUsername(null);
       }
     } catch {
-      setIsAuthenticated(true);
-      setIsAdmin(true);
+      setIsAuthenticated(false);
+      setIsAdmin(false);
       setUserId(null);
-      setUsername('Bhavya');
+      setUsername(null);
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +58,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await fetch('/auth/logout', { credentials: 'include', method: 'POST' });
     } catch {}
-    await checkAuth();
+    setIsAuthenticated(false);
+    setIsAdmin(false);
+    setUserId(null);
+    setUsername(null);
   };
 
   return (

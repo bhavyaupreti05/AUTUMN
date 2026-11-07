@@ -409,6 +409,18 @@ def deactivate_user(user_id: str, current_user: dict = Depends(dependencies.requ
     db.update_user_status(user_id, 'deactivated', admin_id=current_user["id"])
     return {"status": "deactivated"}
 
+@router.delete("/admin/users/{user_id}")
+def delete_user_by_admin(user_id: str, current_user: dict = Depends(dependencies.require_admin)):
+    if user_id == current_user["id"]:
+        raise HTTPException(status_code=400, detail="Cannot delete yourself")
+    target_user = db.get_user_by_id(user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if target_user["is_admin"] and db.get_admin_count() <= 1:
+        raise HTTPException(status_code=400, detail="Cannot delete the last remaining admin")
+    db.delete_user(user_id)
+    return {"status": "deleted"}
+
 @router.post("/admin/users/{user_id}/demote")
 def demote_user(user_id: str, current_user: dict = Depends(dependencies.require_admin)):
     if user_id == current_user["id"]:

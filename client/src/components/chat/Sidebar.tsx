@@ -22,7 +22,9 @@ import {
   Upload,
   CheckCircle2,
   Sparkles,
-  Bot
+  Bot,
+  Shield,
+  LogOut
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useState } from 'react';
@@ -52,7 +54,7 @@ export function Sidebar({
   onQuickPrompt
 }: SidebarProps) {
   const { conversations, isLoading, isError, refetch, deleteConversation, renameConversation, togglePin } = useConversations();
-  const { logout, username } = useAuth();
+  const { logout, isAdmin, username } = useAuth();
   const navigate = useNavigate();
 
   // Navigation tab states
@@ -78,9 +80,9 @@ export function Sidebar({
 
   const displayName = username ? (username.charAt(0).toUpperCase() + username.slice(1)) : 'Bhavya';
 
-  const handleLogout = () => {
-    logout();
-    onNewConversation();
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
   };
 
   const changePassword = async (event: FormEvent) => {
@@ -436,7 +438,7 @@ export function Sidebar({
                 {displayName}
               </div>
               <div className="flex items-center gap-1.5 text-[0.68rem] text-[var(--text-muted)]">
-                <span className="text-[var(--text-secondary)] font-medium">Personal AI</span>
+                <span className="text-[var(--text-secondary)] font-medium">{isAdmin ? "Super Admin" : "Active User"}</span>
                 <span className="opacity-40">•</span>
                 <span>Online</span>
               </div>
@@ -682,7 +684,7 @@ export function Sidebar({
                 <div>
                   <div className="text-base font-bold text-[var(--text-primary)]">{displayName}</div>
                   <div className="mt-0.5 flex items-center gap-2 text-[0.72rem] text-[var(--text-secondary)]">
-                    <span className="text-[var(--text-primary)] font-semibold">Verified User</span>
+                    <span className="text-[var(--text-primary)] font-semibold">{isAdmin ? "Super Administrator" : "Verified User"}</span>
                     <span>•</span>
                     <span>Autumn OS v2.0</span>
                   </div>
@@ -724,15 +726,39 @@ export function Sidebar({
                 <span className="text-[0.84rem] font-medium">Change account password</span>
               </button>
 
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setIsProfileOpen(false);
+                    navigate('/admin');
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2.5 text-left text-[var(--text-primary)] transition-colors hover:border-[var(--accent)] hover:bg-[var(--bg-card-hover)] cursor-pointer"
+                >
+                  <Shield size={16} className="text-[var(--accent)]" />
+                  <span className="text-[0.84rem] font-medium text-[var(--accent)]">Super Admin Dashboard</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => {
+                  setIsProfileOpen(false);
+                  onNewConversation();
+                }}
+                className="flex w-full items-center gap-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2.5 text-left text-[var(--text-primary)] transition-colors hover:border-[var(--border-hover)] hover:bg-[var(--bg-card-hover)] cursor-pointer"
+              >
+                <Plus size={16} />
+                <span className="text-[0.84rem] font-medium">Start fresh conversation</span>
+              </button>
+
               <button
                 onClick={() => {
                   setIsProfileOpen(false);
                   handleLogout();
                 }}
-                className="flex w-full items-center gap-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2.5 text-left text-[var(--text-primary)] transition-colors hover:border-[var(--border-hover)] hover:bg-[var(--bg-card-hover)]"
+                className="flex w-full items-center gap-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2.5 text-left text-red-400 hover:text-red-300 transition-colors hover:border-red-500/30 hover:bg-red-500/10 cursor-pointer"
               >
-                <Plus size={16} />
-                <span className="text-[0.84rem] font-medium">Start fresh conversation</span>
+                <LogOut size={16} />
+                <span className="text-[0.84rem] font-medium">Log out</span>
               </button>
             </div>
           </div>
