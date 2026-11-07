@@ -29,7 +29,9 @@ class TaskService:
         AgentRepository.update_task_status(task_id, status="running")
         artifacts: Dict[str, Any] = {
             "search_citations": [],
-            "sandbox_execution": None
+            "sandbox_execution": None,
+            "grounded_documents": [],
+            "context_links": []
         }
 
         try:
@@ -38,6 +40,35 @@ class TaskService:
             preset = ROLE_PRESETS.get(role, {})
             system_prompt = agent.get("system_prompt") if agent else preset.get("system_prompt", "You are an autonomous AI assistant.")
             tools = agent.get("tools", []) if agent else preset.get("tools", ["web_search", "python_sandbox"])
+
+            # 1. Document Grounding (PDF/DOCX/CSV/XLSX RAG)
+            doc_context = ""
+            doc_ids = task.get("document_ids") or []
+            if doc_ids:
+                from src.database.document_repository import DocumentRepository
+                doc_repo = DocumentRepository()
+                grounded_docs = []
+                for doc_id in doc_ids:
+                    doc = doc_repo.get_document(doc_id)
+                    if doc:
+                        grounded_docs.append({"id": doc_id, "filename": doc.get("filename")})
+                        chunks = doc_repo.get_chunks(doc_id)
+                        if chunks:
+                            combined = "\n".join(c.get("text", "") for c in chunks[:8])
+                            doc_context += f"\n--- [ATTACHED KNOWLEDGE BASE: {doc.get('filename')}] ---\n{combined[:5000]}\n--- [END {doc.get('filename')}] ---\n"
+                        elif doc.get("summary"):
+                            doc_context += f"\n--- [ATTACHED DOCUMENT SUMMARY: {doc.get('filename')}] ---\n{doc.get('summary')}\n"
+                artifacts["grounded_documents"] = grounded_docs
+
+            # 2. External Context & MCP Connection Links
+            links_context = ""
+            links = task.get("context_links") or []
+            if links:
+                artifacts["context_links"] = links
+                links_context += "\n--- [EXTERNAL CONTEXT & MCP CONNECTION RESOURCES] ---\n"
+                for link in links:
+                    links_context += f"• Connection / Resource: {link}\n"
+                links_context += "--- [END EXTERNAL RESOURCES] ---\n"
 
             search_context = ""
             # If web_search is enabled for this agent
@@ -58,6 +89,10 @@ class TaskService:
                 f"You are operating as role: {role.upper()}.\n"
                 f"Provide a clear, high-quality, actionable response.\n"
             ]
+            if doc_context:
+                prompt_parts.append(f"\n{doc_context}\n")
+            if links_context:
+                prompt_parts.append(f"\n{links_context}\n")
             if search_context:
                 prompt_parts.append(f"\n{search_context}\n")
             

@@ -108,5 +108,29 @@ class TestAgentStudio(unittest.TestCase):
         self.assertEqual(updated_pipe["current_stage"], 2)
         self.assertEqual(updated_pipe["status"], "running")
 
+    def test_task_with_documents_and_context_links(self):
+        agents = AgentRepository.list_agents(self.test_user_id)
+        builder = next(a for a in agents if a["role"] == "builder")
+
+        context_links = ["https://example.com/api/v1/spec", "mcp://sandbox-executor/v1"]
+        document_ids = ["doc-12345", "doc-67890"]
+
+        task = AgentRepository.create_task(
+            user_id=self.test_user_id,
+            agent_id=builder["id"],
+            title="Analyze External Architecture & Docs",
+            prompt="Review API spec and document guidelines.",
+            context_links=context_links,
+            document_ids=document_ids
+        )
+        self.assertIsNotNone(task)
+        self.assertEqual(task["context_links"], context_links)
+        self.assertEqual(task["document_ids"], document_ids)
+
+        fetched = AgentRepository.get_task(task["id"])
+        self.assertIsNotNone(fetched)
+        self.assertEqual(fetched["context_links"], context_links)
+        self.assertEqual(fetched["document_ids"], document_ids)
+
 if __name__ == "__main__":
     unittest.main()

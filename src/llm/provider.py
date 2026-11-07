@@ -4,6 +4,9 @@ import json
 import logging
 import httpx
 import threading
+import os
+import time
+import uuid
 from src.config import settings
 
 logger = logging.getLogger(__name__)
@@ -23,6 +26,16 @@ class LLMProvider(ABC):
         pass
 
 
+def _safe_lock_log(msg: str):
+    try:
+        os.makedirs("scratch", exist_ok=True)
+        with open("scratch/lock.log", "a") as f:
+            f.write(msg + "\n")
+            f.flush()
+    except Exception:
+        pass
+
+
 class QwenProvider(LLMProvider):
     def __init__(self):
         if Llama is None:
@@ -31,13 +44,8 @@ class QwenProvider(LLMProvider):
                 "Alternatively, set GROQ_API_KEY in your environment to use Groq cloud inference."
             )
 
-        import uuid
-        import time
-        import os
         self.instance_id = str(uuid.uuid4())[:8]
-        with open("scratch/lock.log", "a") as f:
-            f.write(f"[{self.instance_id}] NEW PROVIDER INSTANCE CREATED at {time.time():.2f} (PID: {os.getpid()})\n")
-            f.flush()
+        _safe_lock_log(f"[{self.instance_id}] NEW PROVIDER INSTANCE CREATED at {time.time():.2f} (PID: {os.getpid()})")
         
         self.lock = threading.Lock()
         self.llm = Llama(
@@ -53,16 +61,11 @@ class QwenProvider(LLMProvider):
         self.pending_foreground_requests = 0
 
     def generate_stream(self, prompt: str, max_tokens: int = None, temperature: float = None, is_background_task: bool = False) -> Generator[Dict[str, Any], None, None]:
-        import uuid
-        import time
         req_id = str(uuid.uuid4())[:8]
         start_perf = time.perf_counter()
         req_type = "HEAVY" if len(prompt) > 1500 else "LIGHT"
         
-        with open("scratch/lock.log", "a") as f:
-            import os
-            f.write(f"[{req_id}] [{req_type}] ATTEMPTING LOCK ACQUIRE at {start_perf:.7f} (PID: {os.getpid()})\n")
-            f.flush()
+        _safe_lock_log(f"[{req_id}] [{req_type}] ATTEMPTING LOCK ACQUIRE at {start_perf:.7f} (PID: {os.getpid()})")
             
         if not is_background_task:
             self.pending_foreground_requests += 1
@@ -73,7 +76,6 @@ class QwenProvider(LLMProvider):
         if self.lock.locked() and getattr(self, "lock_acquire_time", 0) > 0:
             if time.time() - self.lock_acquire_time > watchdog_limit:
                 print(f"WATCHDOG: Generation locked for > {watchdog_limit}s. Cannot safely recover C++ thread. Terminating process to prevent memory corruption.")
-                import os
                 os._exit(1)
                     
         # Fail fast while another CPU-bound generation is running.
@@ -84,21 +86,16 @@ class QwenProvider(LLMProvider):
                 
             if self.lock.locked() and getattr(self, "lock_acquire_time", 0) > 0 and time.time() - self.lock_acquire_time > watchdog_limit:
                 print(f"WATCHDOG: Generation locked for > {watchdog_limit}s after timeout. Cannot safely recover C++ thread. Terminating process to prevent memory corruption.")
-                import os
                 os._exit(1)
             else:
-                with open("scratch/lock.log", "a") as f:
-                    f.write(f"[{req_id}] [{req_type}] LOCK TIMEOUT at {time.perf_counter():.7f}\n")
-                    f.flush()
+                _safe_lock_log(f"[{req_id}] [{req_type}] LOCK TIMEOUT at {time.perf_counter():.7f}")
                 yield {"type": "error", "error": "Server is currently busy processing another request. Please try again later.", "status": 503}
                 return
             
         try:
             self.lock_acquire_time = time.time()
             self.current_task_is_background = is_background_task
-            with open("scratch/lock.log", "a") as f:
-                f.write(f"[{req_id}] [{req_type}] LOCK ACQUIRED at {time.perf_counter():.7f}\n")
-                f.flush()
+            _safe_lock_log(f"[{req_id}] [{req_type}] LOCK ACQUIRED at {time.perf_counter():.7f}")
                 
             yield {"type": "debug_acquire", "req_id": req_id, "time": time.perf_counter()}
             temp = temperature if temperature is not None else settings.TEMPERATURE
@@ -138,9 +135,7 @@ class QwenProvider(LLMProvider):
             if not is_background_task:
                 self.pending_foreground_requests = max(0, self.pending_foreground_requests - 1)
                 
-            with open("scratch/lock.log", "a") as f:
-                f.write(f"[{req_id}] [{req_type}] LOCK RELEASED at {time.perf_counter():.7f}\n")
-                f.flush()
+            _safe_lock_log(f"[{req_id}] [{req_type}] LOCK RELEASED at {time.perf_counter():.7f}")
             self.lock.release()
 
     def health_check(self) -> bool:

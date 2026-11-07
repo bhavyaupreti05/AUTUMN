@@ -27,6 +27,8 @@ export interface AgentTask {
   prompt: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
   result?: string;
+  context_links?: string[];
+  document_ids?: string[];
   artifacts?: {
     search_citations?: Array<{ title: string; url: string; snippet: string }>;
     sandbox_execution?: {
@@ -35,6 +37,8 @@ export interface AgentTask {
       execution_time_ms: number;
       exit_code: number;
     };
+    grounded_documents?: Array<{ id: string; filename: string; chunks_used?: number }>;
+    context_links?: string[];
   };
   error_message?: string;
   is_read: boolean;
@@ -199,7 +203,13 @@ export function useAgentStudio() {
     }
   };
 
-  const dispatchTask = async (agentId: string, title: string, prompt: string) => {
+  const dispatchTask = async (
+    agentId: string, 
+    title: string, 
+    prompt: string,
+    contextLinks?: string[],
+    documentIds?: string[]
+  ) => {
     setLoading(true);
     setError(null);
     try {
@@ -207,7 +217,12 @@ export function useAgentStudio() {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, prompt })
+        body: JSON.stringify({ 
+          title, 
+          prompt,
+          context_links: contextLinks || [],
+          document_ids: documentIds || []
+        })
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));

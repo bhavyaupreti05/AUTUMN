@@ -23,6 +23,8 @@ class CreateAgentRequest(BaseModel):
 class CreateTaskRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     prompt: str = Field(..., min_length=1)
+    context_links: Optional[List[str]] = Field(default_factory=list)
+    document_ids: Optional[List[str]] = Field(default_factory=list)
 
 class CreatePipelineRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
@@ -83,7 +85,9 @@ def dispatch_task(
         user_id=user_id,
         agent_id=agent_id,
         title=payload.title,
-        prompt=payload.prompt
+        prompt=payload.prompt,
+        context_links=payload.context_links,
+        document_ids=payload.document_ids
     )
 
     # Launch in background async task

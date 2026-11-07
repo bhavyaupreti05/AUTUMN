@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Bot, 
@@ -21,7 +21,10 @@ import {
   Sparkles, 
   ExternalLink,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  FileText,
+  Upload,
+  Link2
 } from 'lucide-react';
 import { useAgentStudio } from '../hooks/useAgentStudio';
 
@@ -47,6 +50,15 @@ export function AgentStudioPage() {
   const [selectedAgentForTask, setSelectedAgentForTask] = useState<string>('');
   const [taskTitle, setTaskTitle] = useState('');
   const [taskPrompt, setTaskPrompt] = useState('');
+  
+  // Context & Document Attachments for Missions
+  const [availableDocs, setAvailableDocs] = useState<Array<{ id: string; filename: string; status?: string }>>([]);
+  const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
+  const [contextLinks, setContextLinks] = useState<string[]>([]);
+  const [newLinkInput, setNewLinkInput] = useState('');
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+  const [docUploadError, setDocUploadError] = useState<string | null>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
   
   // Pipeline form
   const [pipelineTitle, setPipelineTitle] = useState('');
@@ -138,13 +150,87 @@ export function AgentStudioPage() {
     setIsNewAgentOpen(false);
   };
 
+  const fetchDocuments = async () => {
+    try {
+      const res = await fetch('/api/documents', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableDocs(data.documents || []);
+      }
+    } catch (err) {
+      console.error('Failed to load documents:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  const handleDirectDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingDoc(true);
+    setDocUploadError(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/documents', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Upload failed');
+      }
+      const data = await res.json();
+      const newDoc = data.document;
+      if (newDoc && newDoc.id) {
+        setAvailableDocs(prev => [newDoc, ...prev.filter(d => d.id !== newDoc.id)]);
+        setSelectedDocIds(prev => [...prev, newDoc.id]);
+      }
+    } catch (err: any) {
+      setDocUploadError(err.message || 'Failed to upload document');
+    } finally {
+      setIsUploadingDoc(false);
+      if (docInputRef.current) docInputRef.current.value = '';
+    }
+  };
+
+  const toggleDocSelection = (docId: string) => {
+    setSelectedDocIds(prev =>
+      prev.includes(docId) ? prev.filter(id => id !== docId) : [...prev, docId]
+    );
+  };
+
+  const handleAddContextLink = () => {
+    const trimmed = newLinkInput.trim();
+    if (!trimmed) return;
+    if (!contextLinks.includes(trimmed)) {
+      setContextLinks(prev => [...prev, trimmed]);
+    }
+    setNewLinkInput('');
+  };
+
+  const handleRemoveContextLink = (linkToRemove: string) => {
+    setContextLinks(prev => prev.filter(l => l !== linkToRemove));
+  };
+
   const handleDispatchTaskSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const targetAgentId = selectedAgentForTask || agents[0]?.id;
+    const targetAgentId = selectedAgentForTask || safeAgents[0]?.id;
     if (!targetAgentId || !taskTitle.trim() || !taskPrompt.trim()) return;
-    await dispatchTask(targetAgentId, taskTitle.trim(), taskPrompt.trim());
+    await dispatchTask(
+      targetAgentId,
+      taskTitle.trim(),
+      taskPrompt.trim(),
+      contextLinks.length > 0 ? contextLinks : undefined,
+      selectedDocIds.length > 0 ? selectedDocIds : undefined
+    );
     setTaskTitle('');
     setTaskPrompt('');
+    setSelectedDocIds([]);
+    setContextLinks([]);
     setActiveTab('tasks');
   };
 
@@ -424,13 +510,125 @@ export function AgentStudioPage() {
                   <div>
                     <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">Mission Objective & Instructions</label>
                     <textarea
-                      rows={5}
+                      rows={4}
                       placeholder="Write exact requirements, inputs, expected tools (Python Sandbox or Live Search), and expected deliverables..."
                       value={taskPrompt}
                       onChange={e => setTaskPrompt(e.target.value)}
                       className="w-full bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-xl p-2.5 text-xs focus:outline-none focus:border-[var(--border-strong)] resize-none"
                       required
                     />
+                  </div>
+
+                  {/* Knowledge Base & Document Attachments */}
+                  <div className="pt-1 border-t border-[var(--border-subtle)]">
+                    <div className="flex items-center justify-between mb-1.5 pt-2">
+                      <label className="text-xs font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
+                        <FileText size={13} className="text-amber-400" />
+                        <span>Ground with Documents & PDFs ({selectedDocIds.length})</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => docInputRef.current?.click()}
+                        disabled={isUploadingDoc}
+                        className="text-[0.68rem] text-[var(--text-primary)] hover:text-amber-400 flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        {isUploadingDoc ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                        <span>Upload File</span>
+                      </button>
+                      <input
+                        ref={docInputRef}
+                        type="file"
+                        accept=".pdf,.docx,.txt,.csv,.xlsx,.md"
+                        className="hidden"
+                        onChange={handleDirectDocUpload}
+                      />
+                    </div>
+
+                    {docUploadError && (
+                      <p className="text-[0.68rem] text-red-400 mb-2">{docUploadError}</p>
+                    )}
+
+                    {availableDocs.length > 0 ? (
+                      <div className="max-h-28 overflow-y-auto space-y-1.5 pr-1 border border-[var(--border-subtle)] rounded-xl p-2 bg-[var(--bg-card)]">
+                        {availableDocs.map(doc => {
+                          const isSelected = selectedDocIds.includes(doc.id);
+                          return (
+                            <button
+                              key={doc.id}
+                              type="button"
+                              onClick={() => toggleDocSelection(doc.id)}
+                              className={`w-full text-left p-1.5 rounded-lg text-[0.68rem] flex items-center justify-between transition-all cursor-pointer border ${
+                                isSelected
+                                  ? 'bg-amber-500/10 border-amber-500/40 text-amber-300 font-medium'
+                                  : 'bg-[var(--bg-surface)] border-transparent text-[var(--text-secondary)] hover:border-[var(--border-subtle)]'
+                              }`}
+                            >
+                              <div className="flex items-center gap-1.5 truncate mr-2">
+                                <FileText size={12} className={isSelected ? 'text-amber-400' : 'text-[var(--text-muted)]'} />
+                                <span className="truncate">{doc.filename}</span>
+                              </div>
+                              <span className="shrink-0 text-[0.62rem] opacity-75">
+                                {isSelected ? 'Attached ✓' : '+ Attach'}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-[0.68rem] text-[var(--text-muted)] italic py-1">
+                        No documents uploaded yet. Click Upload File above to add PDFs or datasets.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* External Context & MCP Connection Links */}
+                  <div className="pt-1 border-t border-[var(--border-subtle)]">
+                    <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 pt-2 flex items-center gap-1.5">
+                      <Link2 size={13} className="text-cyan-400" />
+                      <span>External Context & MCP Endpoints ({contextLinks.length})</span>
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="mcp://... or https://api.docs or schema URL"
+                        value={newLinkInput}
+                        onChange={e => setNewLinkInput(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddContextLink();
+                          }
+                        }}
+                        className="flex-1 bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-xl p-2 text-xs focus:outline-none focus:border-[var(--border-strong)]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddContextLink}
+                        className="px-3 py-2 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] cursor-pointer"
+                      >
+                        Add
+                      </button>
+                    </div>
+
+                    {contextLinks.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {contextLinks.map(link => (
+                          <span
+                            key={link}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-[0.68rem] text-cyan-300 max-w-[260px] truncate"
+                          >
+                            <span className="truncate">{link}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveContextLink(link)}
+                              className="text-cyan-400 hover:text-white cursor-pointer ml-0.5"
+                            >
+                              <X size={10} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <button
@@ -480,9 +678,21 @@ export function AgentStudioPage() {
                             </div>
                             <div className="min-w-0">
                               <h4 className="text-xs font-bold text-[var(--text-primary)] truncate">{task.title}</h4>
-                              <p className="text-[0.68rem] text-[var(--text-muted)] mt-0.5 truncate">
-                                {task.agent_name || 'Agent'} • {task.created_at}
-                              </p>
+                              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                <span className="text-[0.68rem] text-[var(--text-muted)] truncate">
+                                  {task.agent_name || 'Agent'} • {task.created_at}
+                                </span>
+                                {task.document_ids && task.document_ids.length > 0 && (
+                                  <span className="inline-flex items-center gap-0.5 text-amber-400 text-[0.62rem] bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30">
+                                    <FileText size={9} /> {task.document_ids.length} doc{task.document_ids.length > 1 ? 's' : ''}
+                                  </span>
+                                )}
+                                {task.context_links && task.context_links.length > 0 && (
+                                  <span className="inline-flex items-center gap-0.5 text-cyan-400 text-[0.62rem] bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/30">
+                                    <Link2 size={9} /> {task.context_links.length} link{task.context_links.length > 1 ? 's' : ''}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
 
@@ -558,6 +768,55 @@ export function AgentStudioPage() {
                                     >
                                       <ExternalLink size={11} className="shrink-0" />
                                       <span className="truncate">{c.title}</span>
+                                    </a>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Grounded Knowledge Documents Artifact */}
+                            {task.artifacts?.grounded_documents && task.artifacts.grounded_documents.length > 0 && (
+                              <div className="space-y-1.5">
+                                <span className="text-[0.68rem] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                                  <FileText size={11} /> Grounded Documents & PDFs
+                                </span>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                  {task.artifacts.grounded_documents.map((doc, i) => (
+                                    <div
+                                      key={i}
+                                      className="p-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[0.68rem] text-[var(--text-secondary)] flex items-center justify-between gap-1.5"
+                                    >
+                                      <div className="flex items-center gap-1.5 truncate">
+                                        <FileText size={11} className="text-amber-400 shrink-0" />
+                                        <span className="truncate font-medium text-[var(--text-primary)]">{doc.filename}</span>
+                                      </div>
+                                      <span className="text-[0.62rem] text-[var(--text-muted)] shrink-0">
+                                        {doc.chunks_used ? `${doc.chunks_used} chunks` : 'Attached'}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* External Context & MCP Resources */}
+                            {((task.context_links && task.context_links.length > 0) || (task.artifacts?.context_links && task.artifacts.context_links.length > 0)) && (
+                              <div className="space-y-1.5">
+                                <span className="text-[0.68rem] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1">
+                                  <Link2 size={11} /> Attached Context & MCP Connections
+                                </span>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {(task.context_links || task.artifacts?.context_links || []).map((link, i) => (
+                                    <a
+                                      key={i}
+                                      href={link.startsWith('http') ? link : undefined}
+                                      target={link.startsWith('http') ? '_blank' : undefined}
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-[0.68rem] text-cyan-300 hover:border-cyan-500/40 transition-colors"
+                                    >
+                                      <Link2 size={11} className="shrink-0" />
+                                      <span className="truncate max-w-[280px]">{link}</span>
+                                      {link.startsWith('http') && <ExternalLink size={10} className="shrink-0 opacity-60" />}
                                     </a>
                                   ))}
                                 </div>

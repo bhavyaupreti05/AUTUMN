@@ -152,15 +152,19 @@ class AgentRepository:
         prompt: str,
         agent_id: Optional[str] = None,
         pipeline_id: Optional[str] = None,
-        phase_index: int = 0
+        phase_index: int = 0,
+        context_links: Optional[List[str]] = None,
+        document_ids: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         task_id = str(uuid.uuid4())
+        context_links_json = json.dumps(context_links or [])
+        document_ids_json = json.dumps(document_ids or [])
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO agent_tasks (id, user_id, agent_id, pipeline_id, phase_index, title, prompt, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
-            """, (task_id, user_id, agent_id, pipeline_id, phase_index, title, prompt))
+                INSERT INTO agent_tasks (id, user_id, agent_id, pipeline_id, phase_index, title, prompt, status, context_links, document_ids)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
+            """, (task_id, user_id, agent_id, pipeline_id, phase_index, title, prompt, context_links_json, document_ids_json))
             conn.commit()
 
         return AgentRepository.get_task(task_id, user_id)  # type: ignore
@@ -185,6 +189,8 @@ class AgentRepository:
                 return None
             data = dict(row)
             data["artifacts"] = json.loads(data["artifacts"]) if data.get("artifacts") else None
+            data["context_links"] = json.loads(data["context_links"]) if data.get("context_links") else []
+            data["document_ids"] = json.loads(data["document_ids"]) if data.get("document_ids") else []
             return data
 
     @staticmethod
@@ -234,6 +240,8 @@ class AgentRepository:
         for r in rows:
             item = dict(r)
             item["artifacts"] = json.loads(item["artifacts"]) if item.get("artifacts") else None
+            item["context_links"] = json.loads(item["context_links"]) if item.get("context_links") else []
+            item["document_ids"] = json.loads(item["document_ids"]) if item.get("document_ids") else []
             tasks.append(item)
         return tasks
 

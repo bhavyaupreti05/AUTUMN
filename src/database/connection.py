@@ -356,6 +356,16 @@ def init_db():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_agent_tasks_pipeline_id ON agent_tasks(pipeline_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_agent_tasks_unread ON agent_tasks(user_id, is_read, status)")
 
+        try:
+            cursor.execute("ALTER TABLE agent_tasks ADD COLUMN context_links TEXT;")
+        except sqlite3.OperationalError:
+            pass
+
+        try:
+            cursor.execute("ALTER TABLE agent_tasks ADD COLUMN document_ids TEXT;")
+        except sqlite3.OperationalError:
+            pass
+
         conn.commit()
 
 @contextmanager
